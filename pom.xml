@@ -22,6 +22,9 @@
         <module>mall-ware</module>
         <module>mall-member</module>
         <module>mall-common</module>
+        <module>mall-gateway</module>
+        <module>mall-search</module>
+        <module>mall-third-party</module>
         <module>renren-fast</module>
         <module>renren-generator</module>
 
