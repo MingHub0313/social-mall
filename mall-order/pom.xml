@@ -68,6 +68,8 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <!--打包后文件名称-->
+        <finalName>mall-order</finalName>
     </build>
 
 </project>
