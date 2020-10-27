@@ -2,12 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.8.RELEASE</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+
     <groupId>com.bigdata.zmm</groupId>
     <artifactId>social-mall</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -15,18 +10,39 @@
     <description>聚合服务</description>
     <packaging>pom</packaging>
 
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.8.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <open.common.version>0.0.1-SNAPSHOT</open.common.version>
+    </properties>
+
     <modules>
+        <module>mall-common</module>
         <module>mall-coupon</module>
+        <module>mall-gateway</module>
+        <module>mall-member</module>
         <module>mall-order</module>
         <module>mall-product</module>
-        <module>mall-ware</module>
-        <module>mall-member</module>
-        <module>mall-common</module>
-        <module>mall-gateway</module>
         <module>mall-search</module>
         <module>mall-third-party</module>
+        <module>mall-ware</module>
         <module>renren-fast</module>
         <module>renren-generator</module>
 
     </modules>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.zmm</groupId>
+                <artifactId>mall-common</artifactId>
+                <version>${open.common.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

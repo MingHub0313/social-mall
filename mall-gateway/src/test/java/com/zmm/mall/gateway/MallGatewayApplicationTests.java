@@ -8,10 +8,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-class MallGatewayApplicationTests {
+public class MallGatewayApplicationTests {
 
 	@Test
-	void contextLoads() {
+	public void testStream(){
+		System.out.println("测试 MallGatewayApplicationTests");
 	}
 
 }

@@ -67,6 +67,32 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!--<plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.13</version>
+                <configuration>
+                    &lt;!&ndash;覆盖相同标签镜像&ndash;&gt;
+                    <forceTags>true</forceTags>
+                    &lt;!&ndash;指定镜像名称 仓库/镜像名:标签&ndash;&gt;
+                    <imageName>maven/maven-docker:v0.0.1</imageName>
+                    &lt;!&ndash; 指定仓库地址 &ndash;&gt;
+                    <dockerHost>http://111.229.118.62:2375</dockerHost>
+                    &lt;!&ndash; 容器启动执行的命令，相当于dockerFile的ENTRYPOINT &ndash;&gt;
+                    <entryPoint>["java","-jar","/${project.build.finalName}.jar"]</entryPoint>
+                    <resources>
+                        &lt;!&ndash; 指定资源文件 &ndash;&gt;
+                        <resource>
+                            &lt;!&ndash; 指定要复制的目录路径，这里是当前目录 &ndash;&gt;
+                            <targetpath>/</targetpath>
+                            &lt;!&ndash; 指定要复制的根目录，这里是target目录 &ndash;&gt;
+                            <directory>${project.build.directory}</directory>
+                            &lt;!&ndash; 指定需要拷贝的文件，这里指最后生成的jar包 &ndash;&gt;
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>-->
         </plugins>
         <!--打包后文件名称-->
         <finalName>mall-coupon</finalName>
