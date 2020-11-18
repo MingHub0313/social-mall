@@ -1,9 +1,9 @@
 package com.zmm.mall.search.config;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,9 +33,23 @@ public class MallElasticSearchConfig {
 
 	@Bean
 	public RestHighLevelClient esRestClient(){
-		RestHighLevelClient client = new RestHighLevelClient(
-				RestClient.builder(
-						new HttpHost("47.101.132.45",9200,"http")));
+
+		HttpHost host = new HttpHost("47.101.132.45",9200, HttpHost.DEFAULT_SCHEME_NAME);
+
+		RestClientBuilder builder = RestClient.builder(host);
+
+		/**
+		 * 通过密码来连接 es
+		 */
+
+		//CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+		//credentialsProvider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("用户名", "密码"));
+
+		//builder.setHttpClientConfigCallback(f->f.setDefaultCredentialsProvider(credentialsProvider));
+
+		RestHighLevelClient client = new RestHighLevelClient(builder);
+
 		return client;
 	}
 }

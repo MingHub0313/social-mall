@@ -9,8 +9,13 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
@@ -69,5 +74,38 @@ public class MyCacheConfig {
 		}
 
 		return config;
+	}
+
+
+	@Bean
+	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+		if (!(redisConnectionFactory instanceof LettuceConnectionFactory)) {
+			throw new RuntimeException(
+					"unsuport redis connection factory! " + redisConnectionFactory);
+		}
+		LettuceConnectionFactory lettuceConnectionFactory = (LettuceConnectionFactory) redisConnectionFactory;
+		//  2.0.0配置方式，  2.1.7 之后无效了
+		// lettuceConnectionFactory.setDatabase(database);
+		// redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+
+		//2.1.7
+		//可以直接用  spring.redis.database=6 配置
+
+		//2.1.7之后要完全替换
+		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(
+				lettuceConnectionFactory.getHostName(), lettuceConnectionFactory.getPort());
+		redisStandaloneConfiguration.setDatabase(7);
+		redisStandaloneConfiguration.setPassword(lettuceConnectionFactory.getPassword());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
+				redisStandaloneConfiguration, lettuceConnectionFactory.getClientConfiguration());
+		connectionFactory.afterPropertiesSet(); //这句一定不能少
+
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+		StringRedisSerializer stringSerializer = new StringRedisSerializer();
+		redisTemplate.setKeySerializer(stringSerializer);
+		redisTemplate.setHashKeySerializer(stringSerializer);
+		redisTemplate.setConnectionFactory(connectionFactory);
+		return redisTemplate;
+
 	}
 }
