@@ -3,6 +3,7 @@ package com.zmm.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.product.entity.SkuInfoEntity;
+import com.zmm.mall.product.vo.SkuItemVo;
 
 import java.util.List;
 import java.util.Map;
@@ -42,5 +43,15 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
 	 * @return
 	 */
 	List<SkuInfoEntity> getSkuBySpuId(Long spuId);
+
+	/**
+	 * 根据 skuId 获取sku详情
+	 * @author: 900045
+	 * @date: 2021-02-23 15:47:58
+	 * @throws 
+	 * @param skuId: 
+	 * @return: com.zmm.mall.product.vo.SkuItemVo
+	 **/
+	SkuItemVo item(Long skuId);
 }
 

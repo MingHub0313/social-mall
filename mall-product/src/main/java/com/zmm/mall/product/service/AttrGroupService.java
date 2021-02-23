@@ -3,8 +3,8 @@ package com.zmm.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.product.entity.AttrGroupEntity;
-import com.zmm.mall.product.vo.AttrGroupRelationVo;
 import com.zmm.mall.product.vo.AttrGroupWithAttrsVo;
+import com.zmm.mall.product.vo.SpuItemAttrGroupVo;
 
 import java.util.List;
 import java.util.Map;
@@ -41,5 +41,16 @@ public interface AttrGroupService extends IService<AttrGroupEntity> {
 	 * @return
 	 */
 	List<AttrGroupWithAttrsVo> getAttrGroupWithAttrsByCateLogId(Long cateLogId);
+
+	/**
+	 * 根据 spuId 获取所有属性分组以及分组里面所有属性对应的值
+	 * @author: 900045
+	 * @date: 2021-02-23 16:13:30
+	 * @throws 
+	 * @param catalogId: 三级分类id
+	 * @param spuId: spuId
+	 * @return: java.util.List<com.zmm.mall.product.vo.SkuItemVo.SpuItemAttrGroupVo>
+	 **/
+	List<SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long catalogId, Long spuId);
 }
 

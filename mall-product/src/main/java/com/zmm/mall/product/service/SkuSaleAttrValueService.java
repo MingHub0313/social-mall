@@ -3,7 +3,9 @@ package com.zmm.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.product.entity.SkuSaleAttrValueEntity;
+import com.zmm.mall.product.vo.SkuItemSaleAttrVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,5 +23,15 @@ public interface SkuSaleAttrValueService extends IService<SkuSaleAttrValueEntity
      * @return
      */
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 根据 spuId 获取 销售信息
+     * @author: 900045
+     * @date: 2021-02-23 16:57:36
+     * @throws 
+     * @param spuId: 
+     * @return: java.util.List<com.zmm.mall.product.vo.SkuItemSaleAttrVo>
+     **/
+	List<SkuItemSaleAttrVo> getSaleAttrsBySpId(Long spuId);
 }
 

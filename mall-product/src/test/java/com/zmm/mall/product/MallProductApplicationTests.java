@@ -13,11 +13,15 @@ import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CommonKey;
 import com.zmm.common.utils.redis.key.RedisTimeOut;
 import com.zmm.common.utils.redis.key.TestRedisKey;
+import com.zmm.mall.product.dao.AttrGroupDao;
+import com.zmm.mall.product.dao.SkuSaleAttrValueDao;
 import com.zmm.mall.product.entity.BrandEntity;
 import com.zmm.mall.product.service.BrandService;
 import com.zmm.mall.product.service.CategoryService;
 import com.zmm.mall.product.service.impl.MessageConsumerService;
 import com.zmm.mall.product.service.impl.MessageProducerService;
+import com.zmm.mall.product.vo.SkuItemSaleAttrVo;
+import com.zmm.mall.product.vo.SpuItemAttrGroupVo;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.junit.Test;
@@ -71,8 +75,24 @@ public class MallProductApplicationTests {
 
 	@Resource
 	private MessageConsumerService messageConsumerService;
+	
+	@Autowired
+	private AttrGroupDao attrGroupDao;
+	
+	@Autowired
+	private SkuSaleAttrValueDao skuSaleAttrValueDao;
 
 
+	@Test
+	public void getSaleAttrsBySpId(){
+		List<SkuItemSaleAttrVo> saleAttrsBySpId = skuSaleAttrValueDao.getSaleAttrsBySpId(1L);
+		log.info("查询结果:{}",saleAttrsBySpId);
+	}
+	@Test
+	public void testGetAttrGroupWithAttrsBySpuId(){
+		List<SpuItemAttrGroupVo> attrGroupWithAttrsBySpuId = attrGroupDao.getAttrGroupWithAttrsBySpuId(225L, 3L);
+		log.info("查询结果:{}",attrGroupWithAttrsBySpuId);
+	}
 	public static int split(String s, String regex) {
 		String a[] = new String[2];
 		int index = s.indexOf(regex);

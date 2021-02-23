@@ -1,20 +1,32 @@
 package com.zmm.mall.product.service.impl;
 
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
-
 import com.zmm.mall.product.dao.SkuInfoDao;
+import com.zmm.mall.product.entity.SkuImagesEntity;
 import com.zmm.mall.product.entity.SkuInfoEntity;
+import com.zmm.mall.product.entity.SpuInfoDescEntity;
+import com.zmm.mall.product.service.AttrGroupService;
+import com.zmm.mall.product.service.SkuImagesService;
 import com.zmm.mall.product.service.SkuInfoService;
+import com.zmm.mall.product.service.SkuSaleAttrValueService;
+import com.zmm.mall.product.service.SpuInfoDescService;
+import com.zmm.mall.product.vo.SkuItemSaleAttrVo;
+import com.zmm.mall.product.vo.SkuItemVo;
+import com.zmm.mall.product.vo.SpuItemAttrGroupVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * sku信息
@@ -25,6 +37,21 @@ import org.springframework.util.StringUtils;
  */
 @Service("skuInfoService")
 public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> implements SkuInfoService {
+    
+    @Autowired
+    private SkuImagesService skuImagesService;
+    
+    @Autowired
+    private SpuInfoDescService spuInfoDescService;
+    
+    @Autowired
+    private AttrGroupService attrGroupService;
+    
+    @Autowired
+    private SkuSaleAttrValueService skuSaleAttrValueService;
+    
+    @Autowired
+    private ThreadPoolExecutor executor;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -45,6 +72,114 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     public List<SkuInfoEntity> getSkuBySpuId(Long spuId) {
         List<SkuInfoEntity> list = this.list(new QueryWrapper<SkuInfoEntity>().eq("spu_id",spuId));
         return list;
+    }
+
+    @Override
+    public SkuItemVo item(Long skuId) {
+
+        SkuItemVo skuItemVo = packageSkuItemVo(skuId);
+        try {
+            // 使用异步方法 执行的查询
+            SkuItemVo skuItemVo2 = useCompletableFuture(skuId);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+        return skuItemVo;
+    }
+    
+    /**
+     * 改造方法走 异步
+     * @author: 900045
+     * @date: 2021-02-23 17:49:58
+     * @throws 
+     * @param skuId: 
+     * @return: com.zmm.mall.product.vo.SkuItemVo
+     **/
+    public SkuItemVo useCompletableFuture(Long skuId) throws ExecutionException, InterruptedException {
+        SkuItemVo skuItemVo = new SkuItemVo();
+        // 1.
+        CompletableFuture<SkuInfoEntity> skuInfoFuture = CompletableFuture.supplyAsync(() -> {
+            SkuInfoEntity skuInfoEntity = getSkuInfoEntity(skuId, skuItemVo);
+            return skuInfoEntity;
+        }, executor);
+
+        // 3.
+        CompletableFuture<Void> attrFuture = skuInfoFuture.thenAcceptAsync((result) -> {
+            getSkuItemSaleAttrVos(result.getSpuId(),skuItemVo);
+        }, executor);
+
+        // 4.
+        CompletableFuture<Void> descFuture = skuInfoFuture.thenAcceptAsync((result) -> {
+            getSpuInfoDescEntity(result.getSpuId(),skuItemVo);
+            
+        }, executor);
+
+        // 5.
+        CompletableFuture<Void> groupAttrFuture = skuInfoFuture.thenAcceptAsync((result) -> {
+            getSpuItemAttrGroupVos(result.getCatalogId(), result.getSpuId(),skuItemVo);
+        }, executor);
+
+        // 2.
+        CompletableFuture<Void> completableFutureImg = CompletableFuture.runAsync(() -> {
+             getSkuImagesEntities(skuId,skuItemVo);
+        }, executor);
+
+        // 等待所有任务都完成
+        CompletableFuture.allOf(attrFuture, descFuture, groupAttrFuture, completableFutureImg).get();
+        
+        return skuItemVo; 
+    }
+
+    private SkuItemVo packageSkuItemVo(Long skuId) {
+        SkuItemVo skuItemVo = new SkuItemVo();
+        SkuInfoEntity skuInfoEntity = getSkuInfoEntity(skuId,skuItemVo);
+        
+        Long spuId = skuInfoEntity.getSpuId();
+        // 2.sku图片信息
+        getSkuImagesEntities(skuId,skuItemVo);
+        
+        // 3.获取 spu 的销售属性组合
+        getSkuItemSaleAttrVos(spuId,skuItemVo);
+       
+        // 4.获取 spu 的介绍
+
+        getSpuInfoDescEntity(spuId,skuItemVo);
+
+        // 5.获取 spu的规格参数信息
+        getSpuItemAttrGroupVos(skuInfoEntity.getCatalogId(), spuId,skuItemVo);
+        
+        return skuItemVo;
+    }
+
+    private void getSkuImagesEntities(Long skuId,SkuItemVo skuItemVo) {
+        List<SkuImagesEntity> images = skuImagesService.getImagesBySkuId(skuId);
+        skuItemVo.setImages(images);
+    }
+
+    private void getSpuItemAttrGroupVos(Long catalogId, Long spuId,SkuItemVo skuItemVo) {
+        List<SpuItemAttrGroupVo> groupAttrs = attrGroupService.getAttrGroupWithAttrsBySpuId(catalogId, spuId);
+        skuItemVo.setGroupAttrs(groupAttrs);
+    }
+
+    private void getSpuInfoDescEntity(Long spuId,SkuItemVo skuItemVo) {
+        SpuInfoDescEntity spuInfoDescEntity = spuInfoDescService.getById(spuId);
+        skuItemVo.setSpuInfoDescEntity(spuInfoDescEntity);
+    }
+
+    private void getSkuItemSaleAttrVos(Long spuId,SkuItemVo skuItemVo) {
+        List<SkuItemSaleAttrVo> saleAttrVos = skuSaleAttrValueService.getSaleAttrsBySpId(spuId);
+        skuItemVo.setSaleAttr(saleAttrVos);
+    }
+
+    private SkuInfoEntity getSkuInfoEntity(Long skuId,SkuItemVo skuItemVo) {
+        // 1.获取 sku 基本信息
+        SkuInfoEntity skuInfoEntity = getById(skuId);
+        skuItemVo.setSkuInfoEntity(skuInfoEntity);
+        return skuInfoEntity;
     }
 
     @Override

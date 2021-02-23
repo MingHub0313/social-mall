@@ -1,16 +1,17 @@
 package com.zmm.mall.product.service.impl;
 
-import org.springframework.stereotype.Service;
-import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
-
 import com.zmm.mall.product.dao.SkuImagesDao;
 import com.zmm.mall.product.entity.SkuImagesEntity;
 import com.zmm.mall.product.service.SkuImagesService;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * sku图片
@@ -32,4 +33,10 @@ public class SkuImagesServiceImpl extends ServiceImpl<SkuImagesDao, SkuImagesEnt
         return new PageUtils(page);
     }
 
+    @Override
+    public List<SkuImagesEntity> getImagesBySkuId(Long skuId) {
+        SkuImagesDao skuImagesDao = this.baseMapper;
+        List<SkuImagesEntity> skuImagesEntities = skuImagesDao.selectList(new QueryWrapper<SkuImagesEntity>().eq("sku_id", skuId));
+        return skuImagesEntities;
+    }
 }

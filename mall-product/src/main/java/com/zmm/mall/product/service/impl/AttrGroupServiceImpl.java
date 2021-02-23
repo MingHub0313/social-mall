@@ -1,28 +1,25 @@
 package com.zmm.mall.product.service.impl;
 
-import com.zmm.mall.product.entity.AttrEntity;
-import com.zmm.mall.product.service.AttrService;
-import com.zmm.mall.product.vo.AttrGroupRelationVo;
-import com.zmm.mall.product.vo.AttrGroupWithAttrsVo;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
-
 import com.zmm.mall.product.dao.AttrGroupDao;
+import com.zmm.mall.product.entity.AttrEntity;
 import com.zmm.mall.product.entity.AttrGroupEntity;
 import com.zmm.mall.product.service.AttrGroupService;
+import com.zmm.mall.product.service.AttrService;
+import com.zmm.mall.product.vo.AttrGroupWithAttrsVo;
+import com.zmm.mall.product.vo.SpuItemAttrGroupVo;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 属性分组
@@ -80,5 +77,20 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
             return attrGroupWithAttrsVo;
         }).collect(Collectors.toList());
         return attrGroupWithAttrsVoList;
+    }
+
+    @Override
+    public List<SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long catalogId,Long spuId) {
+        // 查出当前 spuId 对应的所有属性的分组信息以及当期分组下的所有属性的值
+        // 1.当前 spu 有多少对应的属性分组 (根据三级分类 catalog_id) 
+        // pro.`spu_id`,ag.`attr_group_name`,ag.`attr_group_id`,aar.`attr_id`,attr.`attr_name`,pro.`attr_value` from pms_attr_group ag 
+        // left join pms_attrgroup_relation aar on aar.`attr_group_id` = ag.`attr_group_id` 
+        // left join pms_attr attr on attr.`attr_id` = aar.`attr_id`
+        // left join pms_product_attr_value pro on pro.`attr_id` = attr.`attr_id`
+        // where ag.catalog_id = 225 AND pro.spu_id = 13
+
+        AttrGroupDao attrGroupDao = this.baseMapper;
+        List<SpuItemAttrGroupVo> spuItemAttrGroupVos = attrGroupDao.getAttrGroupWithAttrsBySpuId(catalogId,spuId);
+        return spuItemAttrGroupVos;
     }
 }
