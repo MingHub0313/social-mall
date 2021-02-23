@@ -10,6 +10,8 @@ import java.util.Map;
  */
 public enum ResultCode implements RespCode {
 
+	TEST_REDIS_KEY_NULL(-111111,"测试redis: key-value 为空对象"),
+
 	FAIL(999999, "系统异常，请刷新后重试"),
 	FIELD(000000, "操作失败!"),
 	METHOD_CALL_PARAMETER_ERROR(888888, "请求参数有误 请按照规则填写"),

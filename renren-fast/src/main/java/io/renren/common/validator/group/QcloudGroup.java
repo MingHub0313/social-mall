@@ -11,7 +11,7 @@ package io.renren.common.validator.group;
 /**
  * 腾讯云
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 public interface QcloudGroup {
 }

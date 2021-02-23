@@ -14,7 +14,7 @@ import java.util.HashMap;
 /**
  * Map工具类
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 public class MapUtils extends HashMap<String, Object> {
 

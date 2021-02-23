@@ -11,7 +11,7 @@ package io.renren.common.validator.group;
 /**
  * 七牛
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 public interface QiniuGroup {
 }

@@ -16,7 +16,7 @@ import io.renren.modules.app.form.LoginForm;
 /**
  * 用户
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 public interface UserService extends IService<UserEntity> {
 

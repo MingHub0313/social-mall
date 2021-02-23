@@ -16,9 +16,9 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 系统日志
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 @Mapper
 public interface SysLogDao extends BaseMapper<SysLogEntity> {
-	
+
 }

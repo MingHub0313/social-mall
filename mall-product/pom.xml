@@ -25,7 +25,6 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
-
         <!-- 使用 alibaba.cloud
         <dependency>
             <groupId>com.aliyun.oss</groupId>
@@ -51,6 +50,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <classifier>jdk15</classifier>
+            <version>2.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 

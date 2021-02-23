@@ -22,17 +22,17 @@ public interface RedisKey {
 	/**
 	 * 设置后缀 追加
 	 * @param suffix
-	 * @param suffixs
+	 * @param postfix
 	 * @return
 	 */
-	default RedisKey setSuffix(String suffix, String... suffixs) {
+	default RedisKey setSuffix(String suffix, String... postfix) {
 		Map<RedisKey, String> map = SUFFIX_MAP.get();
 		if (map == null) {
 			map = new HashMap<>();
 		}
-		if (suffixs != null && suffixs.length > 0) {
+		if (postfix != null && postfix.length > 0) {
 			StringBuilder sb = new StringBuilder(suffix);
-			for (String string : suffixs) {
+			for (String string : postfix) {
 				sb.append(SEPARATE).append(string);
 			}
 			map.put(this, sb.toString());
@@ -46,11 +46,11 @@ public interface RedisKey {
 	/**
 	 * 设置后缀
 	 * @param suffix
-	 * @param suffixs
+	 * @param postfix
 	 * @return
 	 */
-	default RedisKey setSuffix(Number suffix, String... suffixs) {
-		setSuffix(String.valueOf(suffix), suffixs);
+	default RedisKey setSuffix(Number suffix, String... postfix) {
+		setSuffix(String.valueOf(suffix), postfix);
 		return this;
 	}
 

@@ -26,13 +26,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.*;
 
 @Service("scheduleJobService")
 public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, ScheduleJobEntity> implements ScheduleJobService {
 	@Autowired
     private Scheduler scheduler;
-	
+
+	@Resource
+	private ScheduleUtils scheduleUtils;
+
 	/**
 	 * 项目启动时，初始化定时器
 	 */
@@ -40,12 +44,12 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
 	public void init(){
 		List<ScheduleJobEntity> scheduleJobList = this.list();
 		for(ScheduleJobEntity scheduleJob : scheduleJobList){
-			CronTrigger cronTrigger = ScheduleUtils.getCronTrigger(scheduler, scheduleJob.getJobId());
+			CronTrigger cronTrigger = scheduleUtils.getCronTrigger(scheduler, scheduleJob.getJobId());
             //如果不存在，则创建
             if(cronTrigger == null) {
-                ScheduleUtils.createScheduleJob(scheduler, scheduleJob);
+				scheduleUtils.createScheduleJob(scheduler, scheduleJob);
             }else {
-                ScheduleUtils.updateScheduleJob(scheduler, scheduleJob);
+				scheduleUtils.updateScheduleJob(scheduler, scheduleJob);
             }
 		}
 	}
@@ -69,25 +73,24 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
 		scheduleJob.setCreateTime(new Date());
 		scheduleJob.setStatus(Constant.ScheduleStatus.NORMAL.getValue());
         this.save(scheduleJob);
-        
-        ScheduleUtils.createScheduleJob(scheduler, scheduleJob);
+
+		scheduleUtils.createScheduleJob(scheduler, scheduleJob);
     }
-	
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void update(ScheduleJobEntity scheduleJob) {
-        ScheduleUtils.updateScheduleJob(scheduler, scheduleJob);
-                
-        this.updateById(scheduleJob);
+		scheduleUtils.updateScheduleJob(scheduler, scheduleJob);
+		this.updateById(scheduleJob);
     }
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
     public void deleteBatch(Long[] jobIds) {
     	for(Long jobId : jobIds){
-    		ScheduleUtils.deleteScheduleJob(scheduler, jobId);
+			scheduleUtils.deleteScheduleJob(scheduler, jobId);
     	}
-    	
+
     	//删除数据
     	this.removeByIds(Arrays.asList(jobIds));
 	}
@@ -99,12 +102,12 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
     	map.put("status", status);
     	return baseMapper.updateBatch(map);
     }
-    
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
     public void run(Long[] jobIds) {
     	for(Long jobId : jobIds){
-    		ScheduleUtils.run(scheduler, this.getById(jobId));
+			scheduleUtils.run(scheduler, this.getById(jobId));
     	}
     }
 
@@ -112,9 +115,9 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
 	@Transactional(rollbackFor = Exception.class)
     public void pause(Long[] jobIds) {
         for(Long jobId : jobIds){
-    		ScheduleUtils.pauseJob(scheduler, jobId);
+			scheduleUtils.pauseJob(scheduler, jobId);
     	}
-        
+
     	updateBatch(jobIds, Constant.ScheduleStatus.PAUSE.getValue());
     }
 
@@ -122,10 +125,10 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
 	@Transactional(rollbackFor = Exception.class)
     public void resume(Long[] jobIds) {
     	for(Long jobId : jobIds){
-    		ScheduleUtils.resumeJob(scheduler, jobId);
+			scheduleUtils.resumeJob(scheduler, jobId);
     	}
 
     	updateBatch(jobIds, Constant.ScheduleStatus.NORMAL.getValue());
     }
-    
+
 }

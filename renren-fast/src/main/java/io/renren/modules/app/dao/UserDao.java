@@ -15,7 +15,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 用户
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 @Mapper
 public interface UserDao extends BaseMapper<UserEntity> {

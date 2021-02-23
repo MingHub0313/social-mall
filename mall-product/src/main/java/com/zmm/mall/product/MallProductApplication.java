@@ -1,11 +1,13 @@
 package com.zmm.mall.product;
 
+import com.zmm.mall.product.util.ProductScheduleUtils;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 1.整合  Mybatis-plus
@@ -126,10 +128,16 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableDiscoveryClient
 @MapperScan("com.zmm.mall.product.dao")
 @SpringBootApplication
+@EnableScheduling
 public class MallProductApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MallProductApplication.class, args);
+	}
+	
+	@Bean
+	public ProductScheduleUtils productScheduleUtils(){
+		return new ProductScheduleUtils();
 	}
 
 }

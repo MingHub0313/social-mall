@@ -36,6 +36,12 @@ public class Constant {
      *  升序
      */
     public static final String ASC = "asc";
+
+    /**
+     * 任务调度参数key
+     */
+    public static final String JOB_PARAM_KEY = "JOB_PARAM_KEY";
+
 	/**
 	 * 菜单类型
 	 *
@@ -70,7 +76,7 @@ public class Constant {
      * 定时任务状态
      *
      * @author chenshun
-     * @email sunlightcs@gmail.com
+     * @email 1805783671@qq.com
      * @date 2016年12月3日 上午12:07:22
      */
     public enum ScheduleStatus {

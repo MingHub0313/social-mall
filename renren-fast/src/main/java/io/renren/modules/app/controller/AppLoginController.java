@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * APP登录授权
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 @RestController
 @RequestMapping("/app")

@@ -30,16 +30,15 @@
 #
 #        - id: admin_route
 #          uri: lb://renren-fast
-#          predicates :
+#          predicates:
 #            - Path=/api/**
 #          filters:
 #            - RewritePath=/api/(?<segment>.*),/renren-fast/$\{segment}
 #
-#        ## nginx 网关配置 负载均衡
 #        - id: zmm_mall_host_route
 #          uri: lb://mall-product
 #          predicates:
-#            - Host=**.moviepeople.cn
+#            - Host=**.mall.com,mall.com
 #
 #
 #

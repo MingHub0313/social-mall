@@ -1,6 +1,10 @@
 package com.zmm.mall.search.config;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -34,7 +38,7 @@ public class MallElasticSearchConfig {
 	@Bean
 	public RestHighLevelClient esRestClient(){
 
-		HttpHost host = new HttpHost("47.101.132.45",9200, HttpHost.DEFAULT_SCHEME_NAME);
+		HttpHost host = new HttpHost("47.116.113.35",9200, HttpHost.DEFAULT_SCHEME_NAME);
 
 		RestClientBuilder builder = RestClient.builder(host);
 
@@ -42,11 +46,11 @@ public class MallElasticSearchConfig {
 		 * 通过密码来连接 es
 		 */
 
-		//CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
-		//credentialsProvider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("用户名", "密码"));
+		credentialsProvider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("elastic", "19961001zmm"));
 
-		//builder.setHttpClientConfigCallback(f->f.setDefaultCredentialsProvider(credentialsProvider));
+		builder.setHttpClientConfigCallback(f->f.setDefaultCredentialsProvider(credentialsProvider));
 
 		RestHighLevelClient client = new RestHighLevelClient(builder);
 

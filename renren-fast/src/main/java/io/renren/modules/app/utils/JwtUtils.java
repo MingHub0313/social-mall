@@ -21,7 +21,7 @@ import java.util.Date;
 /**
  * jwt工具类
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 @ConfigurationProperties(prefix = "renren.jwt")
 @Component

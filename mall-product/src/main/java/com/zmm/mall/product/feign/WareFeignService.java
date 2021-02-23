@@ -1,7 +1,5 @@
 package com.zmm.mall.product.feign;
 
-import com.zmm.common.to.SkuHasStockVo;
-import com.zmm.common.to.SpuBoundTo;
 import com.zmm.common.utils.R;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +12,7 @@ import java.util.List;
  * @Author 900045
  * @Created by 2020/9/18 0018
  */
-@FeignClient("mall-ware")
+@FeignClient(name = "mall-ware",url = "127.0.0.1:11000")
 public interface WareFeignService {
 
 	/**

@@ -8,9 +8,11 @@
 
 package io.renren;
 
+import io.renren.modules.job.utils.ScheduleUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Bean;
 
 
 @EnableDiscoveryClient
@@ -20,5 +22,11 @@ public class FastApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FastApplication.class, args);
 	}
+
+	@Bean
+	public ScheduleUtils scheduleUtils(){
+		return new ScheduleUtils();
+	}
+
 
 }

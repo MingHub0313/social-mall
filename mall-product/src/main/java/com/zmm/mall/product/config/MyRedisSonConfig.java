@@ -17,7 +17,7 @@ import java.io.IOException;
 public class MyRedisSonConfig {
 
 	/**
-	 * 所有对  RedisSon 的使用 都是通过 RedissonClient 对象
+	 * 所有对  RedisSon 的使用 都是通过 RedisSonClient 对象
 	 * @return
 	 * @throws IOException
 	 */

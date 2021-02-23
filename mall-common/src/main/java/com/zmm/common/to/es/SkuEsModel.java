@@ -17,7 +17,7 @@ public class SkuEsModel {
 
 	private String spuId;
 
-	private Long skuTitle;
+	private String skuTitle;
 
 	private BigDecimal skuPrice;
 

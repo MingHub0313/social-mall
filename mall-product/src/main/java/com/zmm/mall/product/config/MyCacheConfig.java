@@ -1,8 +1,6 @@
 package com.zmm.mall.product.config;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zmm.common.utils.redis.RedisUtil;
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
@@ -15,10 +13,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.time.Duration;
 
 /**
  * @Name MyCacheConfig
@@ -81,12 +76,12 @@ public class MyCacheConfig {
 	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
 		if (!(redisConnectionFactory instanceof LettuceConnectionFactory)) {
 			throw new RuntimeException(
-					"unsuport redis connection factory! " + redisConnectionFactory);
+					"un_support redis connection factory! " + redisConnectionFactory);
 		}
 		LettuceConnectionFactory lettuceConnectionFactory = (LettuceConnectionFactory) redisConnectionFactory;
 		//  2.0.0配置方式，  2.1.7 之后无效了
-		// lettuceConnectionFactory.setDatabase(database);
-		// redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+		// lettuceConnectionFactory.setDatabase(database)
+		// redisTemplate.setConnectionFactory(lettuceConnectionFactory)
 
 		//2.1.7
 		//可以直接用  spring.redis.database=6 配置
@@ -98,14 +93,23 @@ public class MyCacheConfig {
 		redisStandaloneConfiguration.setPassword(lettuceConnectionFactory.getPassword());
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				redisStandaloneConfiguration, lettuceConnectionFactory.getClientConfiguration());
-		connectionFactory.afterPropertiesSet(); //这句一定不能少
+		//这句一定不能少
+		connectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-		StringRedisSerializer stringSerializer = new StringRedisSerializer();
-		redisTemplate.setKeySerializer(stringSerializer);
-		redisTemplate.setHashKeySerializer(stringSerializer);
+		//  使用JSON格式的序列化,保存
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+		// 值 不乱码
+		//redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+		//redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
 		redisTemplate.setConnectionFactory(connectionFactory);
 		return redisTemplate;
 
+	}
+
+	@Bean
+	public RedisUtil<Object> redisUtil(RedisTemplate<String, Object> redisTemplate) {
+		return new RedisUtil<>(redisTemplate);
 	}
 }

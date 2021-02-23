@@ -1,12 +1,18 @@
 package com.zmm.mall.product.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.constant.ProductConstant;
 import com.zmm.common.to.SkuHasStockVo;
 import com.zmm.common.to.SkuReductionTo;
 import com.zmm.common.to.SpuBoundTo;
 import com.zmm.common.to.es.SkuEsModel;
+import com.zmm.common.utils.PageUtils;
+import com.zmm.common.utils.Query;
 import com.zmm.common.utils.R;
+import com.zmm.mall.product.dao.SpuInfoDao;
 import com.zmm.mall.product.entity.AttrEntity;
 import com.zmm.mall.product.entity.BrandEntity;
 import com.zmm.mall.product.entity.CategoryEntity;
@@ -15,6 +21,7 @@ import com.zmm.mall.product.entity.SkuImagesEntity;
 import com.zmm.mall.product.entity.SkuInfoEntity;
 import com.zmm.mall.product.entity.SkuSaleAttrValueEntity;
 import com.zmm.mall.product.entity.SpuInfoDescEntity;
+import com.zmm.mall.product.entity.SpuInfoEntity;
 import com.zmm.mall.product.feign.CouponFeignService;
 import com.zmm.mall.product.feign.SearchFeignService;
 import com.zmm.mall.product.feign.WareFeignService;
@@ -27,6 +34,7 @@ import com.zmm.mall.product.service.SkuInfoService;
 import com.zmm.mall.product.service.SkuSaleAttrValueService;
 import com.zmm.mall.product.service.SpuImagesService;
 import com.zmm.mall.product.service.SpuInfoDescService;
+import com.zmm.mall.product.service.SpuInfoService;
 import com.zmm.mall.product.vo.Attr;
 import com.zmm.mall.product.vo.BaseAttrs;
 import com.zmm.mall.product.vo.Bounds;
@@ -36,27 +44,16 @@ import com.zmm.mall.product.vo.SpuSaveVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zmm.common.utils.PageUtils;
-import com.zmm.common.utils.Query;
-
-import com.zmm.mall.product.dao.SpuInfoDao;
-import com.zmm.mall.product.entity.SpuInfoEntity;
-import com.zmm.mall.product.service.SpuInfoService;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 /**
  * spu信息
@@ -261,8 +258,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         Map<Long, Boolean> finalStockMap = stockMap;
         List<SkuEsModel> collect = skuInfoEntities.stream().map(sku -> {
             SkuEsModel  skuEsModels = new SkuEsModel();
+            skuEsModels.setSpuId(sku.getSpuId().toString());
             BeanUtils.copyProperties(sku,skuEsModels);
             // 对比不同的字段 skuPrice skuImg hasStock hasScore brandName brandImg catalogName  List<Attrs> attrs
+            skuEsModels.setSkuTitle(sku.getSkuTitle());
             skuEsModels.setSkuPrice(sku.getPrice());
             skuEsModels.setSkuImg(sku.getSkuDefaultImg());
             // hasStock hasScore TODO 1.发送远程调用 查询 库存系统是否有库存

@@ -19,13 +19,13 @@ import java.util.Date;
 /**
  * 文件上传
  *
- * @author Mark sunlightcs@gmail.com
+ * @author 1805783671@qq.com
  */
 @Data
 @TableName("sys_oss")
 public class SysOssEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	@TableId
 	private Long id;
 	//URL地址

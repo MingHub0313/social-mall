@@ -3,9 +3,9 @@ package com.zmm.common.utils.redis;
 import com.zmm.common.base.model.EmptyModel;
 import com.zmm.common.constant.RedisTimeOutConstant;
 import com.zmm.common.enums.RedisChannel;
+import com.zmm.common.exception.CustomRunTimeException;
 import com.zmm.common.utils.Assert;
 import com.zmm.common.utils.redis.key.RedisKey;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
@@ -40,15 +40,26 @@ public final class RedisUtil<T> {
 	}
 
 
-	@Autowired
 	private RedisTemplate<String,T> redisTemplate;
 
-	@Autowired
 	private HashOperations<String, String, T> hashTemplate;
-	@Autowired
 	private SetOperations<String, T> setTemplate;
-	@Autowired
 	private ZSetOperations<String, T> zSetTemplate;
+
+	/**
+	 * 通过构造方法 创建Bean 将 redisTemplate 作为参数传递
+	 * @param redisTemplate
+	 */
+	public RedisUtil(RedisTemplate<String, T> redisTemplate) {
+		if (redisTemplate == null) {
+			throw new CustomRunTimeException("RedisUtil<Object>init fail,  redisTemplate is null!");
+		}
+		this.redisTemplate = redisTemplate;
+		this.hashTemplate = this.redisTemplate.opsForHash();
+		this.setTemplate = redisTemplate.opsForSet();
+		this.zSetTemplate = redisTemplate.opsForZSet();
+
+	}
 
 
 	/**
@@ -62,11 +73,21 @@ public final class RedisUtil<T> {
 		redisTemplate.opsForValue().set(key.getKey(), value, getTimeout(timeout), timeUnit);
 	}
 
+	/**
+	 * 设置 key 不超时
+	 * @param redisKey
+	 * @param value
+	 */
+	public void setKey(RedisKey redisKey, T value){
+		redisTemplate.opsForValue().set(redisKey.getKey(), value);
+	}
+
 
 	/**
 	 * 给key设置 一个空模型
 	 * @param key
 	 */
+	@Deprecated
 	public void setEmpty(RedisKey key) {
 		Assert.notNull(key);
 		redisTemplate.opsForValue().set(key.getKey(), (T) EmptyModel.instance(),
@@ -377,6 +398,11 @@ public final class RedisUtil<T> {
 		return null;
 	}
 
+	public boolean zsetAdd(RedisKey redisKey, T value, double score) {
+		Assert.notNull(redisKey);
+		return zSetTemplate.add(redisKey.getKey(), value, score);
+	}
+
 	public Set<T> zSetRange(RedisKey redisKey, double min, double max) {
 		//  zSetTemplate.rangeByScore(key, min, max)
 		return zSetTemplate.rangeByScore(redisKey.getKey(), min, max);
@@ -424,6 +450,10 @@ public final class RedisUtil<T> {
 		return redisTemplate.opsForList().leftPush(redisKey.getKey(), value);
 	}
 
+	public T leftPop(RedisKey redisKey,long time){
+		return redisTemplate.opsForList().leftPop(redisKey.getKey(),time,TimeUnit.SECONDS);
+	}
+
 	public Long rightPush(RedisKey redisKey, T value) {
 		return redisTemplate.opsForList().rightPush(redisKey.getKey(), value);
 	}
@@ -432,6 +462,11 @@ public final class RedisUtil<T> {
 	 */
 	public T rightPop(RedisKey redisKey) {
 		return redisTemplate.opsForList().rightPop(redisKey.getKey());
+	}
+
+
+	public T rightPop(RedisKey redisKey,long time){
+		return redisTemplate.opsForList().rightPop(redisKey.getKey(),time,TimeUnit.SECONDS);
 	}
 
 
