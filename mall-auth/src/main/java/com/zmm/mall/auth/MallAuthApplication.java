@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * @email 1805783671@qq.com
  * @date 2021-02-24 11:33:14
  */
-@EnableFeignClients
+@EnableFeignClients(basePackages="com.zmm.mall.auth.feign")
 @EnableDiscoveryClient
 @SpringBootApplication
 public class MallAuthApplication {

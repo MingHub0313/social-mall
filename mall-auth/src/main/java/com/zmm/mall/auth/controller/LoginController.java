@@ -1,11 +1,13 @@
 package com.zmm.mall.auth.controller;
 
+import com.alibaba.fastjson.TypeReference;
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.constant.AuthConstant;
 import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.key.RedisTimeOut;
 import com.zmm.mall.auth.constant.StringConstant;
+import com.zmm.mall.auth.feign.MemberFeignService;
 import com.zmm.mall.auth.feign.ThirdPartyFeignService;
 import com.zmm.mall.auth.vo.RegisterVo;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +40,9 @@ public class LoginController {
 	
 	@Autowired
 	private ThirdPartyFeignService thirdPartyFeignService;
+
+	@Resource
+	private MemberFeignService memberFeignService;
 	
 	@Autowired
 	private StringRedisTemplate redisTemplate;
@@ -62,11 +68,12 @@ public class LoginController {
 		 * 	1.接口防刷:
 		 * 	2.验证码的再次校验: 将验证码存入 redis中 key : phone value : smsCode ==>sms:code:phone ----> smsCode
 		 */
-		String smsCode =  StringUtil.getRandom(6)+"_"+System.currentTimeMillis();
-		log.error("手机号:{} 生成的验证码:{}",phone,smsCode);
+		String code = StringUtil.getRandom(6);
+		redisCode =  code +"_"+System.currentTimeMillis();
+		log.error("手机号:{} 生成的验证码:{}",phone,redisCode);
 		// 存入 redis 中 [同一个手机号 不可以在1分钟内 再次发送]
-		redisTemplate.opsForValue().set(smsCodeCachePrefix,smsCode,10, TimeUnit.MINUTES);
-		thirdPartyFeignService.sendCode(phone,smsCode);
+		redisTemplate.opsForValue().set(smsCodeCachePrefix,redisCode,10, TimeUnit.MINUTES);
+		thirdPartyFeignService.sendCode(phone,code);
 		return new ReqResult(ResultCode.SUCCESS);
 	}
 	
@@ -101,9 +108,21 @@ public class LoginController {
 			if (code.equals(redisCode.split(StringConstant.REGULAR_)[0])){
 				// 删除 redis中的 验证码 令牌机制
 				redisTemplate.delete(smsCodeCachePrefix);
+				// 3.开始注册 调用远程服务进行注册
+				ReqResult reqResult = memberFeignService.register(vo);
+				if (reqResult.getResultCode() == 1000){
+					// 成功
+					// "redirect:http://auth.mall.com/login.html";
+				} else {
+					Map<String ,String> errors = new HashMap<>(1);
+					errors.put("msg",reqResult.getData().toString());
+					// return "redirect:http://auth.mall.com/reg.html"
+				}
+				return reqResult;
 			} else {
 				Map<String ,String> errors = new HashMap<>(1);
 				errors.put("code","验证码失效");
+				// return "redirect:http://auth.mall.com/reg.html"
 				return new ReqResult(ResultCode.METHOD_CALL_PARAMETER_ERROR,errors);
 			}
 			
@@ -111,13 +130,12 @@ public class LoginController {
 			// 如果为空 需要重发送验证码
 			Map<String ,String> errors = new HashMap<>(1);
 			errors.put("code","验证码失效");
+			// return "redirect:http://auth.mall.com/reg.html"
 			return new ReqResult(ResultCode.METHOD_CALL_PARAMETER_ERROR,errors);
 		}
-		// 3.开始注册 调用远程服务进行注册
-		
+
 		// 重定向至 登录页
 		// return "redirect:/login.html"
-		return new ReqResult(ResultCode.SUCCESS);
 	}
 	
 }

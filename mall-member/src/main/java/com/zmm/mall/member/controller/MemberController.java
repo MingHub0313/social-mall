@@ -1,6 +1,7 @@
 package com.zmm.mall.member.controller;
 
 import com.zmm.common.base.model.ReqResult;
+import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.exception.BusinessException;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.R;
@@ -55,10 +56,11 @@ public class MemberController {
         try {
             memberService.register(vo);
         } catch (BusinessException e) {
-            log.error("register error :"+ e );
-        }
+            log.error("register error :"+ e);
+            return new ReqResult(ResultCode.EXCEPTION);
 
-        return new ReqResult();
+        }
+        return new ReqResult(ResultCode.SUCCESS);
     }
 
     /**

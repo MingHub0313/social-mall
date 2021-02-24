@@ -77,6 +77,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         MemberDao memberDao = this.baseMapper;
         Integer count = memberDao.selectCount(new QueryWrapper<MemberEntity>().eq("mobile", phone));
         if ( count > 0 ) {
+            // throw new PhoneExistException()
             throw new BusinessException(ResultCode.USERNAME_NOT_UNIQUE);
         }
         
@@ -88,6 +89,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         MemberDao memberDao = this.baseMapper;
         Integer count = memberDao.selectCount(new QueryWrapper<MemberEntity>().eq("username", userName));
         if ( count > 0 ) {
+            // throw new UserNameExistException()
             throw new BusinessException(ResultCode.PHONE_NOT_UNIQUE);
         }
     }

@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * @Name MallCorsConfiguration
+ * @Name MallGatewayApplication
  * @Author 900045
  * @Created by 2020/8/24 0024
  *
