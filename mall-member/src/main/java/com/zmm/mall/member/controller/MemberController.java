@@ -1,9 +1,14 @@
 package com.zmm.mall.member.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
+import com.zmm.common.base.model.ReqResult;
+import com.zmm.common.exception.BusinessException;
+import com.zmm.common.utils.PageUtils;
+import com.zmm.common.utils.R;
+import com.zmm.mall.member.entity.MemberEntity;
 import com.zmm.mall.member.feign.CouponFeign;
+import com.zmm.mall.member.service.MemberService;
+import com.zmm.mall.member.vo.MemberRegisterVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,10 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zmm.mall.member.entity.MemberEntity;
-import com.zmm.mall.member.service.MemberService;
-import com.zmm.common.utils.PageUtils;
-import com.zmm.common.utils.R;
+import java.util.Arrays;
+import java.util.Map;
 
 
 
@@ -25,6 +28,7 @@ import com.zmm.common.utils.R;
  * @email 1805783671@qq.com
  * @date 2020-08-21 11:38:56
  */
+@Slf4j
 @RestController
 @RequestMapping("member/member")
 public class MemberController {
@@ -41,6 +45,20 @@ public class MemberController {
         memberEntity.setNickname("张三");
         R memberCoupons = couponFeign.memberCoupons();
         return R.ok().put("member", memberEntity).put("coupons",memberCoupons.get("coupons"));
+    }
+
+    /**
+     * 保存
+     */
+    @RequestMapping("/register")
+    public ReqResult register(@RequestBody MemberRegisterVo vo){
+        try {
+            memberService.register(vo);
+        } catch (BusinessException e) {
+            log.error("register error :"+ e );
+        }
+
+        return new ReqResult();
     }
 
     /**

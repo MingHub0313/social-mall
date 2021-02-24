@@ -1,6 +1,7 @@
 package com.zmm.mall.mall.thirdparty;
 
 import com.aliyun.oss.OSSClient;
+import com.zmm.mall.mall.thirdparty.component.SmsComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,18 @@ public class MallThirdPartyApplicationTests {
 
 	@Autowired
 	private OSSClient ossClient;
+	
+	@Autowired
+	private SmsComponent smsComponent;
+
+
+	/**
+	 * 发送 验证码
+	 */
+	@Test
+	public void sendVerificationCode(){
+		smsComponent.sendSmsCode("15156350313","789456");
+	}
 
 
 	@Test

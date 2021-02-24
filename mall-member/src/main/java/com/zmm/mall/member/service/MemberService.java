@@ -1,8 +1,10 @@
 package com.zmm.mall.member.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zmm.common.exception.BusinessException;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.member.entity.MemberEntity;
+import com.zmm.mall.member.vo.MemberRegisterVo;
 
 import java.util.Map;
 
@@ -21,5 +23,35 @@ public interface MemberService extends IService<MemberEntity> {
      * @return
      */
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 会员注册
+     * @author: 900045
+     * @date: 2021-02-24 16:58:08
+     * @throws BusinessException
+     * @param vo: 
+     * @return: void
+     **/
+	void register(MemberRegisterVo vo) throws BusinessException;
+	
+	/**
+	 * 检查 邮箱是否唯一
+	 * @author: 900045
+	 * @date: 2021-02-24 17:07:05
+	 * @throws BusinessException
+	 * @param phone: 
+	 * @return: void
+	 **/
+	void checkPhoneUnique(String phone) throws BusinessException;
+	
+	/**
+	 * 检查 用户名是否唯一
+	 * @author: 900045
+	 * @date: 2021-02-24 17:07:23
+	 * @throws BusinessException
+	 * @param userName: 
+	 * @return: void
+	 **/
+	void checkUserNameUnique(String userName) throws BusinessException;
 }
 

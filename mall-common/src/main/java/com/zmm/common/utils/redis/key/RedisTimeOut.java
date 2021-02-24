@@ -42,4 +42,6 @@ public final class RedisTimeOut {
 
 	/** 五秒的秒数 */
 	public final static long S_5 = 5;
+	
+	public final static Integer MILL_1000= 1000;
 }

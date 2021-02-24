@@ -4,10 +4,9 @@ import com.zmm.mall.product.service.SkuInfoService;
 import com.zmm.mall.product.vo.SkuItemVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author 900045
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  * @date By 2021-02-23 15:40:24
  */
 @Slf4j
-@Controller
+@RestController
 public class ItemController {
 	
 	@Autowired
@@ -31,10 +30,9 @@ public class ItemController {
 	 * @return: java.lang.String
 	 **/
 	@GetMapping(value = "/{skuId}")
-	public String skuItem(@PathVariable("skuId") Long skuId, Model model){
+	public SkuItemVo skuItem(@PathVariable("skuId") Long skuId){
 		log.info("准备查询:{}详情",skuId);
 		SkuItemVo skuItemVo = skuInfoService.item(skuId);
-		model.addAttribute("item",skuItemVo);
-		return "item";
+		return skuItemVo;
 	}
 }

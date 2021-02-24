@@ -17,6 +17,7 @@ import com.zmm.mall.product.service.SpuInfoDescService;
 import com.zmm.mall.product.vo.SkuItemSaleAttrVo;
 import com.zmm.mall.product.vo.SkuItemVo;
 import com.zmm.mall.product.vo.SpuItemAttrGroupVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -35,6 +36,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @email 1805783671@qq.com
  * @date 2020-08-21 10:45:46
  */
+@Slf4j
 @Service("skuInfoService")
 public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> implements SkuInfoService {
     
@@ -77,10 +79,10 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     @Override
     public SkuItemVo item(Long skuId) {
 
-        SkuItemVo skuItemVo = packageSkuItemVo(skuId);
+        SkuItemVo skuItemVo = null;
         try {
             // 使用异步方法 执行的查询
-            SkuItemVo skuItemVo2 = useCompletableFuture(skuId);
+            skuItemVo = useCompletableFuture(skuId);
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -99,7 +101,7 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
      * @param skuId: 
      * @return: com.zmm.mall.product.vo.SkuItemVo
      **/
-    public SkuItemVo useCompletableFuture(Long skuId) throws ExecutionException, InterruptedException {
+    public  SkuItemVo useCompletableFuture(Long skuId) throws ExecutionException, InterruptedException {
         SkuItemVo skuItemVo = new SkuItemVo();
         // 1.
         CompletableFuture<SkuInfoEntity> skuInfoFuture = CompletableFuture.supplyAsync(() -> {
@@ -108,19 +110,18 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         }, executor);
 
         // 3.
-        CompletableFuture<Void> attrFuture = skuInfoFuture.thenAcceptAsync((result) -> {
-            getSkuItemSaleAttrVos(result.getSpuId(),skuItemVo);
+        CompletableFuture<Void> attrFuture = skuInfoFuture.thenAcceptAsync((skuInfoEntity) -> {
+            getSkuItemSaleAttrVos(skuInfoEntity.getSpuId(),skuItemVo);
         }, executor);
 
         // 4.
-        CompletableFuture<Void> descFuture = skuInfoFuture.thenAcceptAsync((result) -> {
-            getSpuInfoDescEntity(result.getSpuId(),skuItemVo);
-            
+        CompletableFuture<Void> descFuture = skuInfoFuture.thenAcceptAsync((skuInfoEntity) -> {
+            getSpuInfoDescEntity(skuInfoEntity.getSpuId(),skuItemVo);
         }, executor);
 
         // 5.
-        CompletableFuture<Void> groupAttrFuture = skuInfoFuture.thenAcceptAsync((result) -> {
-            getSpuItemAttrGroupVos(result.getCatalogId(), result.getSpuId(),skuItemVo);
+        CompletableFuture<Void> groupAttrFuture = skuInfoFuture.thenAcceptAsync((skuInfoEntity) -> {
+            getSpuItemAttrGroupVos(skuInfoEntity.getCatalogId(), skuInfoEntity.getSpuId(),skuItemVo);
         }, executor);
 
         // 2.

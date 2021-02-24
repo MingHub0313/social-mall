@@ -17,5 +17,14 @@
         <result property="note" column="note"/>
     </resultMap>
 
+    <sql id="invoice_detail">
+      id,name,growth_point,default_status,
+      free_freight_point,comment_growth_point,privilege_free_freight,privilege_member_price,privilege_birthday,note
+      </sql>
+    
+    <select id="getDefaultLevel" resultMap="memberLevelMap" >
+        SELECT <include refid="invoice_detail"/> from  ums_member_level where default_status = 1
+    </select>
+
 
 </mapper>
