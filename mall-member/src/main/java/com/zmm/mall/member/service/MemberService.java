@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.exception.BusinessException;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.member.entity.MemberEntity;
+import com.zmm.mall.member.vo.MemberLoginVo;
 import com.zmm.mall.member.vo.MemberRegisterVo;
 
 import java.util.Map;
@@ -53,5 +54,15 @@ public interface MemberService extends IService<MemberEntity> {
 	 * @return: void
 	 **/
 	void checkUserNameUnique(String userName) throws BusinessException;
+
+	/**
+	 * 用户登录
+	 * @author: 900045
+	 * @date: 2021-02-25 10:15:49
+	 * @throws 
+	 * @param vo: 
+	 * @return: com.zmm.mall.member.entity.MemberEntity
+	 **/
+	MemberEntity login(MemberLoginVo vo);
 }
 

@@ -29,6 +29,7 @@ public enum ResultCode implements RespCode {
 	SUCCESS(1000, "成功"),
 	TEST_REDIS_KEY_NULL(-111111,"测试redis: key-value 为空对象"),
 	METHOD_CALL_PARAMETER_ERROR(888888, "请求参数有误 请按照规则填写"),
+	APP_FAIL(999999, "服务请求失败"),
 	
 	
 	
@@ -39,6 +40,7 @@ public enum ResultCode implements RespCode {
 	EXCEPTION(150000,"存在异常"),
 	USERNAME_NOT_UNIQUE(150001,"用户名不唯一"),
 	PHONE_NOT_UNIQUE(150002,"手机号不唯一"),
+	LOGIN_ACCT_PASSWORD_INVALID_ERROR(150003,"账号密码错误"),
 	
 	
 	;
@@ -97,6 +99,13 @@ public enum ResultCode implements RespCode {
 	public static String getDesc(int code) {
 		RespCode respCode = map.get(code);
 		return respCode == null ? "" : respCode.getDesc();
+	}
+
+	public static RespCode getType(int code) {
+		if (code <= 0) {
+			return null;
+		}
+		return map.get(code);
 	}
 
 	@Override

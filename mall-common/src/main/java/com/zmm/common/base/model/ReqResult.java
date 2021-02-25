@@ -97,5 +97,11 @@ public class ReqResult<T> implements Serializable {
 		return this.respCode == ResultCode.SUCCESS;
 	}
 
+
+	public void setResultCode(int respCode) {
+		RespCode type = ResultCode.getType(respCode);
+		this.respCode = type == null ? ResultCode.APP_FAIL : type;
+	}
+
 	
 }

@@ -12,11 +12,14 @@ import com.zmm.mall.member.dao.MemberLevelDao;
 import com.zmm.mall.member.entity.MemberEntity;
 import com.zmm.mall.member.entity.MemberLevelEntity;
 import com.zmm.mall.member.service.MemberService;
+import com.zmm.mall.member.vo.MemberLoginVo;
 import com.zmm.mall.member.vo.MemberRegisterVo;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
 import java.util.Map;
 
 /**
@@ -26,10 +29,11 @@ import java.util.Map;
  * @email 1805783671@qq.com
  * @date 2020-08-21 11:38:56
  */
+@Slf4j
 @Service("memberService")
 public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> implements MemberService {
     
-    @Autowired
+    @Resource
     private MemberLevelDao memberLevelDao;
 
     @Override
@@ -71,6 +75,31 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         memberDao.insert(memberEntity);
     }
 
+    @Override
+    public MemberEntity login(MemberLoginVo vo) {
+        MemberDao memberDao = this.baseMapper;
+        // 1.根据 登录账号 查询 数据库 是否存在
+        MemberEntity memberEntity = memberDao.selectOne(new QueryWrapper<MemberEntity>().eq("username", vo.getLoginAccount()).or().eq("mobile", vo.getLoginAccount()));
+        if (ObjectUtils.isEmpty(memberEntity)){
+            // 1.1 不存在 登录失败
+            log.error("获取用户信息为空,账号:{}",vo.getLoginAccount());
+            return null;
+        } else {
+            // 1.2 如果存在
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            // 2.进行密码匹配
+            boolean matches = passwordEncoder.matches(vo.getPassword(), memberEntity.getPassword());
+            if (matches){
+                // 2.1 匹配成功 登录成功
+                log.error("登录成功,账号:{}",vo.getLoginAccount());
+                return memberEntity;
+            } else {
+                log.error("密码匹配失败,账号:{}",vo.getLoginAccount());
+                // 2.2 匹配失败 登录失败
+                return null;
+            }
+        }
+    }
 
     @Override
     public void checkPhoneUnique(String phone) throws BusinessException {
@@ -78,7 +107,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         Integer count = memberDao.selectCount(new QueryWrapper<MemberEntity>().eq("mobile", phone));
         if ( count > 0 ) {
             // throw new PhoneExistException()
-            throw new BusinessException(ResultCode.USERNAME_NOT_UNIQUE);
+            throw new BusinessException(ResultCode.PHONE_NOT_UNIQUE);
         }
         
 
@@ -90,7 +119,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         Integer count = memberDao.selectCount(new QueryWrapper<MemberEntity>().eq("username", userName));
         if ( count > 0 ) {
             // throw new UserNameExistException()
-            throw new BusinessException(ResultCode.PHONE_NOT_UNIQUE);
+            throw new BusinessException(ResultCode.USERNAME_NOT_UNIQUE);
         }
     }
 }

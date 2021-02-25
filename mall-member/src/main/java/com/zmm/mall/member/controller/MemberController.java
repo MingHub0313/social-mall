@@ -1,6 +1,7 @@
 package com.zmm.mall.member.controller;
 
 import com.zmm.common.base.model.ReqResult;
+import com.zmm.common.base.model.RespCode;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.exception.BusinessException;
 import com.zmm.common.utils.PageUtils;
@@ -8,10 +9,13 @@ import com.zmm.common.utils.R;
 import com.zmm.mall.member.entity.MemberEntity;
 import com.zmm.mall.member.feign.CouponFeign;
 import com.zmm.mall.member.service.MemberService;
+import com.zmm.mall.member.vo.MemberLoginVo;
 import com.zmm.mall.member.vo.MemberRegisterVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,16 +52,29 @@ public class MemberController {
         return R.ok().put("member", memberEntity).put("coupons",memberCoupons.get("coupons"));
     }
 
+
+    @PostMapping("/login")
+    public ReqResult login(@RequestBody MemberLoginVo vo){
+        MemberEntity memberEntity = memberService.login(vo);
+        if (ObjectUtils.isEmpty(memberEntity)){
+            return new ReqResult(ResultCode.LOGIN_ACCT_PASSWORD_INVALID_ERROR);
+        } else {
+            return new ReqResult(memberEntity);
+        }
+        
+    }
     /**
-     * 保存
+     * 注册
      */
-    @RequestMapping("/register")
+    @PostMapping(value = "/register")
     public ReqResult register(@RequestBody MemberRegisterVo vo){
         try {
             memberService.register(vo);
         } catch (BusinessException e) {
             log.error("register error :"+ e);
-            return new ReqResult(ResultCode.EXCEPTION);
+            RespCode code = e.getCode();
+            String message = e.getMessage();
+            return new ReqResult(code,message);
 
         }
         return new ReqResult(ResultCode.SUCCESS);

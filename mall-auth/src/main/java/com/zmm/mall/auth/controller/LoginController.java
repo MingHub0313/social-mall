@@ -1,14 +1,15 @@
 package com.zmm.mall.auth.controller;
 
-import com.alibaba.fastjson.TypeReference;
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.constant.AuthConstant;
+import com.zmm.common.constant.NumberConstant;
 import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.key.RedisTimeOut;
 import com.zmm.mall.auth.constant.StringConstant;
 import com.zmm.mall.auth.feign.MemberFeignService;
 import com.zmm.mall.auth.feign.ThirdPartyFeignService;
+import com.zmm.mall.auth.vo.LoginVo;
 import com.zmm.mall.auth.vo.RegisterVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -46,7 +47,25 @@ public class LoginController {
 	
 	@Autowired
 	private StringRedisTemplate redisTemplate;
-	
+
+
+	@PostMapping("/login")
+	public ReqResult login(@Valid LoginVo loginVo, BindingResult bindingResult){
+		if (bindingResult.hasErrors()){
+			return paramVerify(bindingResult);
+		}
+		ReqResult result = memberFeignService.login(loginVo);
+		if (result.getResultCode() == NumberConstant.THOUSAND){
+			// 成功
+			// "redirect:http://mall.com";
+		} else {
+			// 失败
+			// "redirect:http://auth.mall.com/login.html";
+		}
+		// 远程登录 重定向商场的首页地址
+		// return "redirect:http://mall.com"
+		return result;
+	}
 	
 	@GetMapping("/sms/send/code")
 	public ReqResult sendCode(@RequestParam("phone") String phone){
@@ -81,21 +100,7 @@ public class LoginController {
 	public ReqResult register(@Valid RegisterVo vo, BindingResult result){
 		// 1.表达校验
 		if (result.hasErrors()){
-
-			/**
-			 * result.getFieldErrors().stream().map( fieldError->{
-			 * 				String field = fieldError.getField()
-			 * 				String message = fieldError.getDefaultMessage()
-			 * 				errors.put("field",field)
-			 * 				errors.put("message",message)
-			 * 				return errors
-			 *                        })
-			 */
-			Map<String ,String> errors = result.getFieldErrors().stream().collect(Collectors.toMap(FieldError::getField,FieldError::getDefaultMessage));
-			// model.addAttribute("errors",errors)
-			// 校验出错 转发至 注册页面
-			// return "reg"
-			return new ReqResult(ResultCode.METHOD_CALL_PARAMETER_ERROR,errors);
+			return paramVerify(result);
 		}
 		// 2.验证码校验 不用判空 @NotEmpty
 		String code = vo.getCode();
@@ -110,26 +115,22 @@ public class LoginController {
 				redisTemplate.delete(smsCodeCachePrefix);
 				// 3.开始注册 调用远程服务进行注册
 				ReqResult reqResult = memberFeignService.register(vo);
-				if (reqResult.getResultCode() == 1000){
+				if (reqResult.getResultCode() == NumberConstant.THOUSAND){
 					// 成功
 					// "redirect:http://auth.mall.com/login.html";
 				} else {
-					Map<String ,String> errors = new HashMap<>(1);
-					errors.put("msg",reqResult.getData().toString());
 					// return "redirect:http://auth.mall.com/reg.html"
 				}
 				return reqResult;
 			} else {
-				Map<String ,String> errors = new HashMap<>(1);
-				errors.put("code","验证码失效");
+				Map<String, String> errors = getErrorsMap("code", "验证码失效");
 				// return "redirect:http://auth.mall.com/reg.html"
 				return new ReqResult(ResultCode.METHOD_CALL_PARAMETER_ERROR,errors);
 			}
 			
 		} else {
 			// 如果为空 需要重发送验证码
-			Map<String ,String> errors = new HashMap<>(1);
-			errors.put("code","验证码失效");
+			Map<String, String> errors = getErrorsMap("code", "验证码失效");
 			// return "redirect:http://auth.mall.com/reg.html"
 			return new ReqResult(ResultCode.METHOD_CALL_PARAMETER_ERROR,errors);
 		}
@@ -137,5 +138,37 @@ public class LoginController {
 		// 重定向至 登录页
 		// return "redirect:/login.html"
 	}
+
+	/**
+	 * 包装 错误信息
+	 * @author: 900045
+	 * @date: 2021-02-25 09:48:46
+	 * @throws 
+	 * @param code2: 
+	 * @param 验证码失效: 
+	 * @return: java.util.Map<java.lang.String,java.lang.String>
+	 **/
+	private Map<String, String> getErrorsMap(String code2, String 验证码失效) {
+		Map<String, String> errors = new HashMap<>(1);
+		errors.put(code2, 验证码失效);
+		return errors;
+	}
 	
+	private ReqResult paramVerify(BindingResult result){
+		/**
+		 * result.getFieldErrors().stream().map( fieldError->{
+		 * 				String field = fieldError.getField()
+		 * 				String message = fieldError.getDefaultMessage()
+		 * 				errors.put("field",field)
+		 * 				errors.put("message",message)
+		 * 				return errors
+		 *                        })
+		 */
+		Map<String ,String> errors = result.getFieldErrors().stream().collect(Collectors.toMap(FieldError::getField,FieldError::getDefaultMessage));
+		// model.addAttribute("errors",errors)
+		// 校验出错 转发至 注册页面
+		// return "reg"
+		return new ReqResult(ResultCode.METHOD_CALL_PARAMETER_ERROR,errors);
+	}
+
 }
