@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @date By 2021-02-24 11:25:31
  */
 @Configuration
-public class MallWebController implements WebMvcConfigurer {
+public class MallWebConfig implements WebMvcConfigurer {
 
 
 	/**
@@ -27,7 +27,7 @@ public class MallWebController implements WebMvcConfigurer {
 		 * 		return "login";		--->viewName
 		 * 	}
 		 */
-		registry.addViewController("/login.html").setViewName("login");
+		// registry.addViewController("/login.html").setViewName("login")
 		registry.addViewController("/reg.html").setViewName("reg");
 	}
 }

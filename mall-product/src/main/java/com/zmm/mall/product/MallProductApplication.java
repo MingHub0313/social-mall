@@ -8,6 +8,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
  * 1.整合  Mybatis-plus
@@ -123,7 +124,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @Author 900045
  * @Created by 2020/8/26
  */
-
+@EnableRedisHttpSession
 @EnableFeignClients(basePackages = "com.zmm.mall.product.feign")
 @EnableDiscoveryClient
 @MapperScan("com.zmm.mall.product.dao")

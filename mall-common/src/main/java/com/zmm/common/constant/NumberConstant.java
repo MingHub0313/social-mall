@@ -12,4 +12,9 @@ public class NumberConstant {
 	 * 数字一千
 	 */
 	public static final Integer THOUSAND= 1000;
+
+	/**
+	 * 数字 二百
+	 */
+	public static final Integer TWO_HUNDRED =200;
 }

@@ -1,5 +1,6 @@
 package com.zmm.mall.auth.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.constant.AuthConstant;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +50,22 @@ public class LoginController {
 	
 	@Autowired
 	private StringRedisTemplate redisTemplate;
+	
+	@GetMapping("/login.html")
+	public ReqResult loginPage(HttpSession session){
+		Object attribute = session.getAttribute(StringConstant.LOGIN_USER);
+		if (ObjectUtils.isEmpty(attribute)){
+			//没登录
+			log.error("用户还没有登录,[SpringSession中没有数据]");
+			return new ReqResult(ResultCode.USER_NOT_LOGIN);
+		}
+		//登录了 跳 登录页面
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		ReqResult reqResult = objectMapper.convertValue(attribute, ReqResult.class);
+		log.error("用户已经登录,[SpringSession中存在数据]");
+		return reqResult;
+	}
 
 
 	@PostMapping("/login")

@@ -11,6 +11,7 @@ import com.zmm.mall.member.feign.CouponFeign;
 import com.zmm.mall.member.service.MemberService;
 import com.zmm.mall.member.vo.MemberLoginVo;
 import com.zmm.mall.member.vo.MemberRegisterVo;
+import com.zmm.mall.member.vo.SocialUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
@@ -53,16 +54,36 @@ public class MemberController {
     }
 
 
+
+    @PostMapping("/oauth2/login")
+    public ReqResult oauthLogin(@RequestBody SocialUser socialUser){
+        MemberEntity memberEntity = memberService.login(socialUser);
+        return getReqResult(memberEntity, ResultCode.WBO_AUTH_FAIL);
+    }
     @PostMapping("/login")
     public ReqResult login(@RequestBody MemberLoginVo vo){
         MemberEntity memberEntity = memberService.login(vo);
-        if (ObjectUtils.isEmpty(memberEntity)){
-            return new ReqResult(ResultCode.LOGIN_ACCT_PASSWORD_INVALID_ERROR);
+        return getReqResult(memberEntity, ResultCode.LOGIN_ACCT_PASSWORD_INVALID_ERROR);
+
+    }
+
+    /**
+     * 统一返回 ReqResult 信息
+     * @author: 900045
+     * @date: 2021-02-25 15:00:24
+     * @throws 
+     * @param memberEntity: 
+     * @param loginAcctPasswordInvalidError: 
+     * @return: com.zmm.common.base.model.ReqResult
+     **/
+    private ReqResult getReqResult(MemberEntity memberEntity, ResultCode loginAcctPasswordInvalidError) {
+        if (ObjectUtils.isEmpty(memberEntity)) {
+            return new ReqResult(loginAcctPasswordInvalidError);
         } else {
             return new ReqResult(memberEntity);
         }
-        
     }
+
     /**
      * 注册
      */

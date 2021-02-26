@@ -1,28 +1,23 @@
-package com.zmm.mall.member.entity;
+package com.zmm.mall.auth.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.ToString;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 会员
- *
- * @author zhangmingming
- * @email 1805783671@qq.com
- * @date 2020-08-21 11:38:56
+ * @author 900045
+ * @description:
+ * @name MemberRespVo
+ * @date By 2021-02-25 15:12:45
  */
+@ToString
 @Data
-@TableName("ums_member")
-public class MemberEntity implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class MemberRespVo {
 
 	/**
 	 * $column.comments
 	 */
-	@TableId
 	private Long id;
 	/**
 	 * $column.comments
@@ -92,11 +87,10 @@ public class MemberEntity implements Serializable {
 	 * $column.comments
 	 */
 	private Date createTime;
-	
-	private String socialUid;
-	
-	private String accessToken;
-	
-	private String expiresIn;
 
+	private String socialUid;
+
+	private String accessToken;
+
+	private String expiresIn;
 }

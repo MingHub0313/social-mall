@@ -12,4 +12,9 @@ public class StringConstant {
 	 * 正则 _
 	 */
 	public static final String REGULAR_ = "_";
+
+	/**
+	 * SpringSession 中的 key
+	 */
+	public static final String LOGIN_USER = "loginUser";
 }

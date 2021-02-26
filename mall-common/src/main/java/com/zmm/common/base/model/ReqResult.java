@@ -1,5 +1,7 @@
 package com.zmm.common.base.model;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
@@ -52,6 +54,13 @@ public class ReqResult<T> implements Serializable {
 
 	public ReqResult(T data) {
 		this.data = data;
+	}
+
+	public <T> T getEntityObject(Object data,TypeReference<T> typeReference){
+		// get() --->Map类型
+		String jsonString = JSON.toJSONString(data);
+		T t = JSON.parseObject(jsonString, typeReference);
+		return t;
 	}
 
 	public ReqResult(RespCode respCode) {

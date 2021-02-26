@@ -1,10 +1,14 @@
 package com.zmm.mall.member.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.base.model.ResultCode;
+import com.zmm.common.constant.NumberConstant;
 import com.zmm.common.exception.BusinessException;
+import com.zmm.common.utils.HttpUtils;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
 import com.zmm.mall.member.dao.MemberDao;
@@ -14,12 +18,16 @@ import com.zmm.mall.member.entity.MemberLevelEntity;
 import com.zmm.mall.member.service.MemberService;
 import com.zmm.mall.member.vo.MemberLoginVo;
 import com.zmm.mall.member.vo.MemberRegisterVo;
+import com.zmm.mall.member.vo.SocialUser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -71,7 +79,9 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         String encode = bCryptPasswordEncoder.encode(vo.getPassword());
         memberEntity.setPassword(encode);
-        
+
+        // 默认用户昵称
+        memberEntity.setNickname(vo.getUserName());
         memberDao.insert(memberEntity);
     }
 
@@ -98,6 +108,66 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
                 // 2.2 匹配失败 登录失败
                 return null;
             }
+        }
+    }
+
+    @Override
+    public MemberEntity login(SocialUser socialUser) {
+        // 登录和注册合并逻辑
+        String uid = socialUser.getUid();
+        String access_token = socialUser.getAccess_token();
+        String expires_in = socialUser.getExpires_in();
+        // 1.根据 social_uid 查询 当前 MemberEntity 是否已经登录过系统
+        MemberDao memberDao = this.baseMapper;
+        MemberEntity memberEntity = memberDao.selectOne(new QueryWrapper<MemberEntity>().eq("social_uid", uid));
+        if (!ObjectUtils.isEmpty(memberEntity)){
+            // 1.1这个用户已经在系统中注册过 -->更新 social_token / expires_in
+            MemberEntity updateEntity = new MemberEntity();
+            updateEntity.setId(memberEntity.getId());
+            updateEntity.setAccessToken(access_token);
+            updateEntity.setExpiresIn(expires_in);
+            memberDao.updateById(updateEntity);
+
+            memberEntity.setAccessToken(access_token);
+            memberEntity.setExpiresIn(expires_in);
+            //返回新数据
+            return memberEntity;
+        } else {
+            // 1.2没有查询到 当前社交用户对应的 social_uid --->进行注册
+            MemberEntity register = new MemberEntity();
+            
+            // 2.查询当前社交用户的账号信息(昵称/性别)
+            Map<String,String> map = new HashMap<>();
+            try {
+                // 获取 用户信息即使异常 也不应该影响 用户注册
+                map.put("uid",uid);
+                map.put("access_token",access_token);
+                HttpResponse response = HttpUtils.doGet("https://api.weibo.com", "2/users/show.json", "get", new HashMap<>(), map);
+                if (response.getStatusLine().getStatusCode() == NumberConstant.TWO_HUNDRED) {
+                    // 查询成功
+                    String json = EntityUtils.toString(response.getEntity());
+                    JSONObject jsonObject = JSON.parseObject(json);
+                    String name = jsonObject.getString("name");
+                    String gender = jsonObject.getString("gender");
+                    String profile_image_url = jsonObject.getString("profile_image_url");
+                    String location = jsonObject.getString("location");
+                    String description = jsonObject.getString("description");
+                    // ...
+                    register.setNickname(name);
+                    register.setGender("m".equals(gender) ? 1 : 0);
+                    register.setHeader(profile_image_url);
+                    register.setCity(location);
+                    register.setSign(description);
+                }
+            } catch (Exception e){
+                log.error("获取用户信息失败---->失败信息:{}",e);
+            }
+            register.setSourceType(1);
+            register.setSocialUid(uid);
+            register.setAccessToken(access_token);
+            register.setExpiresIn(expires_in);
+            memberDao.insert(register);
+            return register;
         }
     }
 

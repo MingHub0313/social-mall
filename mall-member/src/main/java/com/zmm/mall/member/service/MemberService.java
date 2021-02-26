@@ -6,6 +6,7 @@ import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.member.entity.MemberEntity;
 import com.zmm.mall.member.vo.MemberLoginVo;
 import com.zmm.mall.member.vo.MemberRegisterVo;
+import com.zmm.mall.member.vo.SocialUser;
 
 import java.util.Map;
 
@@ -64,5 +65,15 @@ public interface MemberService extends IService<MemberEntity> {
 	 * @return: com.zmm.mall.member.entity.MemberEntity
 	 **/
 	MemberEntity login(MemberLoginVo vo);
+
+	/**
+	 * 社交登录
+	 * @author: 900045
+	 * @date: 2021-02-25 14:23:24
+	 * @throws 
+	 * @param socialUser: 
+	 * @return: com.zmm.mall.member.entity.MemberEntity
+	 **/
+	MemberEntity login(SocialUser socialUser);
 }
 

@@ -41,6 +41,8 @@ public enum ResultCode implements RespCode {
 	USERNAME_NOT_UNIQUE(150001,"用户名不唯一"),
 	PHONE_NOT_UNIQUE(150002,"手机号不唯一"),
 	LOGIN_ACCT_PASSWORD_INVALID_ERROR(150003,"账号密码错误"),
+	WBO_AUTH_FAIL(150004,"微博认证失败"),
+	USER_NOT_LOGIN(150005,"用户未登录"),
 	
 	
 	;
