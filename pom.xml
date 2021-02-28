@@ -23,8 +23,9 @@
     </properties>
 
     <modules>
-        <module>mall-auth</module>
         <module>mall-common</module>
+        <module>mall-auth</module>
+        <module>mall-cart</module>
         <module>mall-coupon</module>
         <module>mall-gateway</module>
         <module>mall-member</module>

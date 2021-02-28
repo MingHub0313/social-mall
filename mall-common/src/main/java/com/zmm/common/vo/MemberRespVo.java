@@ -1,8 +1,9 @@
-package com.zmm.mall.auth.vo;
+package com.zmm.common.vo;
 
 import lombok.Data;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -13,7 +14,7 @@ import java.util.Date;
  */
 @ToString
 @Data
-public class MemberRespVo {
+public class MemberRespVo implements Serializable {
 
 	/**
 	 * $column.comments

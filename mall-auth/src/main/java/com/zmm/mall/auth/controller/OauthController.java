@@ -5,7 +5,7 @@ import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.constant.NumberConstant;
 import com.zmm.common.utils.HttpUtils;
-import com.zmm.mall.auth.constant.StringConstant;
+import com.zmm.common.constant.StringConstant;
 import com.zmm.mall.auth.feign.MemberFeignService;
 import com.zmm.mall.auth.vo.SocialUser;
 import lombok.extern.slf4j.Slf4j;

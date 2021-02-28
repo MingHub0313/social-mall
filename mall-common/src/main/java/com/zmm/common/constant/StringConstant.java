@@ -1,4 +1,4 @@
-package com.zmm.mall.auth.constant;
+package com.zmm.common.constant;
 
 /**
  * @author 900045

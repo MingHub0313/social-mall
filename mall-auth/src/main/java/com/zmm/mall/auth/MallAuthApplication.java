@@ -12,7 +12,6 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * @email 1805783671@qq.com
  * @date 2021-02-24 11:33:14
  */
-@EnableRedisHttpSession
 @EnableFeignClients(basePackages="com.zmm.mall.auth.feign")
 @EnableDiscoveryClient
 @SpringBootApplication

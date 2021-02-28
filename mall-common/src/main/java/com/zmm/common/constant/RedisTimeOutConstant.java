@@ -44,4 +44,5 @@ public final class RedisTimeOutConstant {
 
 	/** 五秒的秒数 */
 	public final static long S_5 = 5;
+
 }

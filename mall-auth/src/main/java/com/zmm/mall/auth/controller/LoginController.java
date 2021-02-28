@@ -7,7 +7,7 @@ import com.zmm.common.constant.AuthConstant;
 import com.zmm.common.constant.NumberConstant;
 import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.key.RedisTimeOut;
-import com.zmm.mall.auth.constant.StringConstant;
+import com.zmm.common.constant.StringConstant;
 import com.zmm.mall.auth.feign.MemberFeignService;
 import com.zmm.mall.auth.feign.ThirdPartyFeignService;
 import com.zmm.mall.auth.vo.LoginVo;
