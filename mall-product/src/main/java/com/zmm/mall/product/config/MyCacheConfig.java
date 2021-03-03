@@ -1,5 +1,6 @@
 package com.zmm.mall.product.config;
 
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.zmm.common.utils.redis.RedisUtil;
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -97,12 +98,13 @@ public class MyCacheConfig {
 		connectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+		FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<>(Object.class);
 		//  使用JSON格式的序列化,保存
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		// 值 不乱码
-		//redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-		//redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+		redisTemplate.setValueSerializer(fastJsonRedisSerializer);
+		redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
 		redisTemplate.setConnectionFactory(connectionFactory);
 		return redisTemplate;
 

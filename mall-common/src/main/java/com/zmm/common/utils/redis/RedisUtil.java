@@ -307,6 +307,32 @@ public final class RedisUtil<T> {
 		return redisTemplate.getExpire(redisKey.getKey(), timeUnit);
 	}
 
+	/**
+	 * 根据 hash 的key 以及 field 判断是否存在
+	 * @author: Administrator
+	 * @date: 2021-03-03 23:25:19
+	 * @param redisKey: 
+	 * @param value: 
+	 * @return: boolean
+	 **/
+	public boolean hashExists(RedisKey redisKey,T value){
+		return redisTemplate.opsForHash().hasKey(redisKey.getKey(),value);
+
+	}
+
+	/**
+	 * 根据 hash 的key 以及 field 获取对应的值
+	 * @author: Administrator
+	 * @date: 2021-03-03 23:24:56
+	 * @param redisKey: 
+	 * @param field: 
+	 * @return: java.lang.String
+	 **/
+	public String hashGet(RedisKey redisKey,T field){
+		Object val = redisTemplate.opsForHash().get(redisKey.getKey(), field);
+		return  val == null ? null : val.toString();
+	}
+
 	// ==================================== hash 相关  END   ==============================================
 
 

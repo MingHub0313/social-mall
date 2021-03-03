@@ -9,6 +9,7 @@ import com.bigdata.zmm.mall.cart.to.UserInfoTo;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.bigdata.zmm.mall.cart.vo.SkuInfoVo;
 import com.zmm.common.utils.R;
+import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CartKey;
 import lombok.extern.slf4j.Slf4j;
@@ -47,38 +48,57 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItem addToCart(Long skuId, Integer number) throws ExecutionException, InterruptedException {
-        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
-        CartItem cartItem = new CartItem();
-        // 1.根据 skuId 远程查询当前商品的信息
-        CompletableFuture<Void> futureSkuInfo = CompletableFuture.runAsync(() -> {
-            R skuInfo = productFeignService.getSkuInfo(skuId);
-            SkuInfoVo skuInfoData = skuInfo.getData("skuInfo", new TypeReference<SkuInfoVo>() {
-            });
-            // 2.商品添加到购物车 (CartItem)
-            cartItem.setCheck(true);
-            cartItem.setCount(number);
-            cartItem.setImage(skuInfoData.getSkuDefaultImg());
-            cartItem.setTitle(skuInfoData.getSkuTitle());
-            cartItem.setSkuId(skuId);
-            cartItem.setPrice(skuInfoData.getPrice());
-        },executor);
 
-        // 3.远程查询 sku的 组合信息
-        CompletableFuture<Void> futureAttrValues = CompletableFuture.runAsync(() -> {
-            R attrValues = productFeignService.getSkuSaleAttrValues(skuId);
-            List<String> list = attrValues.getData("list", new TypeReference<List<String>>() {
-            });
-            cartItem.setSkuAttr(list);
-        }, executor);
-        // 4.阻塞线程
-        CompletableFuture.allOf(futureSkuInfo,futureAttrValues).get();
-        String jsonString = JSON.toJSONString(cartItem);
-        // 可能会出现问题 一定要等到 上面两个异步执行完成后
-        // 操作 Redis 的方案 一.
-        cartOps.put(skuId.toString(),jsonString);
-        // 操作 Redis 的方案 二.
-        redisUtil.hash(getCartKey(),skuId);
-        return cartItem;
+        // advance.1 判断购物车中是否存在
+        String string = redisUtil.hashGet(getCartKey(), skuId);
+        /**
+         * 1.判断购物车中是否存在
+         *      存在: 则修改数量
+         *      不存在:则添加购物项
+         */
+        if (StringUtil.isNotBlank(string)){
+            // 购物车 有此商品 修改商品数量
+            CartItem cartItem = JSON.parseObject(string, CartItem.class);
+            cartItem.setCount(cartItem.getCount() + number);
+            // redisKey  field value
+            redisUtil.hash(getCartKey(), skuId,cartItem);
+            return cartItem;
+        } else {
+            // 购物车无此商品 开始往 redis 中 添加购物项(cartItem)
+
+            BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+            CartItem cartItem = new CartItem();
+            // 1.根据 skuId 远程查询当前商品的信息
+            CompletableFuture<Void> futureSkuInfo = CompletableFuture.runAsync(() -> {
+                R skuInfo = productFeignService.getSkuInfo(skuId);
+                SkuInfoVo skuInfoData = skuInfo.getData("skuInfo", new TypeReference<SkuInfoVo>() {
+                });
+                // 2.商品添加到购物车 (CartItem)
+                cartItem.setCheck(true);
+                cartItem.setCount(number);
+                cartItem.setImage(skuInfoData.getSkuDefaultImg());
+                cartItem.setTitle(skuInfoData.getSkuTitle());
+                cartItem.setSkuId(skuId);
+                cartItem.setPrice(skuInfoData.getPrice());
+            }, executor);
+
+            // 3.远程查询 sku的 组合信息
+            CompletableFuture<Void> futureAttrValues = CompletableFuture.runAsync(() -> {
+                R attrValues = productFeignService.getSkuSaleAttrValues(skuId);
+                List<String> list = attrValues.getData("list", new TypeReference<List<String>>() {
+                });
+                cartItem.setSkuAttr(list);
+            }, executor);
+            // 4.阻塞线程
+            CompletableFuture.allOf(futureSkuInfo, futureAttrValues).get();
+            String jsonString = JSON.toJSONString(cartItem);
+            // 可能会出现问题 一定要等到 上面两个异步执行完成后
+            // 操作 Redis 的方案 一.
+            cartOps.put(skuId.toString(), jsonString);
+            // 操作 Redis 的方案 二.
+            redisUtil.hash(getCartKey(), skuId, cartItem);
+            return cartItem;
+        }
     }
 
     /**
