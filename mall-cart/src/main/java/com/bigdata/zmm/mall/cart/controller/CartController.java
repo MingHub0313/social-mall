@@ -1,15 +1,17 @@
 package com.bigdata.zmm.mall.cart.controller;
 
 import com.bigdata.zmm.mall.cart.interceptor.CartInterceptor;
+import com.bigdata.zmm.mall.cart.service.CartService;
 import com.bigdata.zmm.mall.cart.to.UserInfoTo;
+import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
-import com.zmm.common.constant.StringConstant;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpSession;
+import javax.annotation.Resource;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @Description:
@@ -19,6 +21,10 @@ import javax.servlet.http.HttpSession;
  */
 @RestController
 public class CartController {
+
+    @Resource
+    private CartService cartService;
+
 
     /**
      *
@@ -38,6 +44,22 @@ public class CartController {
         // 1. 快速得到用户用户信息 id:user-key
         // 目标方法
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+
+        return new ReqResult(ResultCode.SUCCESS);
+    }
+    
+    /**
+     * 添加商品到 购物车
+     * @author: Administrator
+     * @date: 2021-03-03 20:43:45
+     * @param skuId: 
+     * @param number: 
+     * @return: com.zmm.common.base.model.ReqResult
+     **/
+    public ReqResult addToCart(@RequestParam("skuId") Long skuId,
+                               @RequestParam("number") Integer number) throws ExecutionException, InterruptedException {
+
+        CartItem cartItem = cartService.addToCart(skuId,number);
 
         return new ReqResult(ResultCode.SUCCESS);
     }

@@ -25,6 +25,11 @@
         GROUP BY
 	       sale.`attr_id`;
     </select>
+    <select id="getSkuSaleAttrValues" resultType="java.lang.String">
+        SELECT concat(attr_name,":",attr_value)
+        FROM `pms_sku_sale_attr_value`
+        WHERE sku_id = #{skuId}
+    </select>
 
 
 </mapper>

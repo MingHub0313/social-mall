@@ -33,5 +33,14 @@ public interface SkuSaleAttrValueService extends IService<SkuSaleAttrValueEntity
      * @return: java.util.List<com.zmm.mall.product.vo.SkuItemSaleAttrVo>
      **/
 	List<SkuItemSaleAttrVo> getSaleAttrsBySpId(Long spuId);
+
+	/**
+	 * 根据 skuId 获取 skuAttrValues
+	 * @author: Administrator
+	 * @date: 2021-03-03 21:47:54
+	 * @param skuId: 
+	 * @return: java.util.List<java.lang.String>
+	 **/
+    List<String> getSkuSaleAttrValues(Long skuId);
 }
 

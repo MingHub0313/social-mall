@@ -42,6 +42,15 @@ public class R extends HashMap<String, Object> {
 		T t = JSON.parseObject(jsonString, typeReference);
 		return t;
 	}
+
+	public <T>T getData(String key,TypeReference<T> typeReference){
+		// get() --->Map类型
+		Object data = get(key);
+		String jsonString = JSON.toJSONString(data);
+		T t = JSON.parseObject(jsonString, typeReference);
+		return t;
+	}
+
 	public R() {
 		put("code", 0);
 		put("msg", "success");
