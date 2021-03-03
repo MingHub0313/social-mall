@@ -5,7 +5,6 @@ import com.zmm.common.to.es.SkuEsModel;
 import com.zmm.mall.search.config.MallElasticSearchConfig;
 import com.zmm.mall.search.constant.EsConstant;
 import com.zmm.mall.search.service.ProductSaveService;
-import javafx.scene.control.IndexRange;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -31,7 +30,7 @@ public class ProductSaveServiceImpl implements ProductSaveService {
 
 
 	@Autowired
-	private RestHighLevelClient restHighLevelClient;
+	private RestHighLevelClient esRestClient;
 
 	@Override
 	public boolean productStatusUp(List<SkuEsModel> skuEsModelList) throws IOException {
@@ -50,7 +49,7 @@ public class ProductSaveServiceImpl implements ProductSaveService {
 			indexRequest.source(jsonString, XContentType.JSON);
 			bulkRequest.add(indexRequest);
 		}
-		BulkResponse bulk = restHighLevelClient.bulk(bulkRequest, MallElasticSearchConfig.COMMON_OPTIONS);
+		BulkResponse bulk = esRestClient.bulk(bulkRequest, MallElasticSearchConfig.COMMON_OPTIONS);
 
 		// 是否存在错误 TODO  没有错误为 false 有错误为true
 		boolean hasFailures = bulk.hasFailures();

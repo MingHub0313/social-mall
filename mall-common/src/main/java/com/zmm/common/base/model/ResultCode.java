@@ -17,6 +17,7 @@ public enum ResultCode implements RespCode {
 	 * 3.维护错误码后需要维护错误信息
 	 * 错误码列表:
 	 * 	10: 通用
+	 * 		0000: 成功
 	 * 		0001: 系统未知异常
 	 * 		0002: 操作失败
 	 * 		0003: ....
@@ -26,16 +27,17 @@ public enum ResultCode implements RespCode {
 	 * 	14:物流
 	 * 	15:用户
 	 */
-	SUCCESS(1000, "成功"),
+	
 	TEST_REDIS_KEY_NULL(-111111,"测试redis: key-value 为空对象"),
-	METHOD_CALL_PARAMETER_ERROR(888888, "请求参数有误 请按照规则填写"),
 	APP_FAIL(999999, "服务请求失败"),
 	
-	
-	
+
+
+	SUCCESS(100000, "成功"),
 	FAIL(100001, "系统异常，请刷新后重试"),
 	FIELD(100002, "操作失败!"),
 	SMS_CODE_EXCEPTION(100003, "短信验证码发送太快,稍后再试"),
+	METHOD_CALL_PARAMETER_ERROR(100004, "请求参数有误 请按照规则填写"),
 
 	EXCEPTION(150000,"存在异常"),
 	USERNAME_NOT_UNIQUE(150001,"用户名不唯一"),
