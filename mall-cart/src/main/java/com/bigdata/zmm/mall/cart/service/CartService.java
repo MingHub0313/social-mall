@@ -1,5 +1,6 @@
 package com.bigdata.zmm.mall.cart.service;
 
+import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 
 import java.util.concurrent.ExecutionException;
@@ -20,4 +21,12 @@ public interface CartService {
      * @return: com.bigdata.zmm.mall.cart.vo.CartItem
      **/
     CartItem addToCart(Long skuId, Integer number) throws ExecutionException, InterruptedException;
+
+    /**
+     * 获取当前用户的购物车信息
+     * @author: Administrator
+     * @date: 2021-03-04 20:22:42
+     * @return: com.bigdata.zmm.mall.cart.vo.Cart
+     **/
+    Cart getCart();
 }

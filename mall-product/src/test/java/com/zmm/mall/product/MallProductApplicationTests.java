@@ -205,7 +205,7 @@ public class MallProductApplicationTests {
 		// 5. 删除 某个 key
 		// 6. 设置一个 key 值为 空对象
 		// 7. 取出这个 空 对象 并对其进行处理
-		Integer type = 8;
+		Integer type = 1;
 
 		switch (type) {
 

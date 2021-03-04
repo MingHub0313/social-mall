@@ -1,10 +1,12 @@
 package com.bigdata.zmm.mall.cart;
 
+import com.zmm.common.config.BaseConfigure;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.stereotype.Component;
 
 /**
  * @author zhangmingming
@@ -20,4 +22,8 @@ public class MallCatApplication {
         SpringApplication.run(MallCatApplication.class, args);
     }
 
+
+    @Component
+    public class serviceConfigure extends BaseConfigure {
+    }
 }

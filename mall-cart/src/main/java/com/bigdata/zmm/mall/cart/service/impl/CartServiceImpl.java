@@ -6,6 +6,7 @@ import com.bigdata.zmm.mall.cart.feign.ProductFeignService;
 import com.bigdata.zmm.mall.cart.interceptor.CartInterceptor;
 import com.bigdata.zmm.mall.cart.service.CartService;
 import com.bigdata.zmm.mall.cart.to.UserInfoTo;
+import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.bigdata.zmm.mall.cart.vo.SkuInfoVo;
 import com.zmm.common.utils.R;
@@ -14,8 +15,8 @@ import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CartKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -35,8 +36,9 @@ public class CartServiceImpl implements CartService {
 
     @Resource
     private RedisUtil redisUtil;
-    @Resource
-    private StringRedisTemplate redisTemplate;
+
+    /*@Resource
+    private StringRedisTemplate redisTemplate;*/
 
     @Resource
     private ProductFeignService productFeignService;
@@ -49,8 +51,10 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartItem addToCart(Long skuId, Integer number) throws ExecutionException, InterruptedException {
 
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+
         // advance.1 判断购物车中是否存在
-        String string = redisUtil.hashGet(getCartKey(), skuId);
+        String string = redisUtil.hashGet(getCartKey(userInfoTo), skuId);
         /**
          * 1.判断购物车中是否存在
          *      存在: 则修改数量
@@ -61,7 +65,7 @@ public class CartServiceImpl implements CartService {
             CartItem cartItem = JSON.parseObject(string, CartItem.class);
             cartItem.setCount(cartItem.getCount() + number);
             // redisKey  field value
-            redisUtil.hash(getCartKey(), skuId,cartItem);
+            redisUtil.hash(getCartKey(userInfoTo), skuId,cartItem);
             return cartItem;
         } else {
             // 购物车无此商品 开始往 redis 中 添加购物项(cartItem)
@@ -96,7 +100,7 @@ public class CartServiceImpl implements CartService {
             // 操作 Redis 的方案 一.
             cartOps.put(skuId.toString(), jsonString);
             // 操作 Redis 的方案 二.
-            redisUtil.hash(getCartKey(), skuId, cartItem);
+            redisUtil.hash(getCartKey(userInfoTo), skuId, cartItem);
             return cartItem;
         }
     }
@@ -109,8 +113,9 @@ public class CartServiceImpl implements CartService {
      * @return: org.springframework.data.redis.core.BoundHashOperations<java.lang.String,java.lang.Object,java.lang.Object>
      **/
     private BoundHashOperations<String, Object, Object> getCartOps() {
-        CartKey cartKey = getCartKey();
-        BoundHashOperations<String, Object, Object> operations = redisTemplate.boundHashOps(cartKey.getKey());
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        CartKey cartKey = getCartKey(userInfoTo);
+        BoundHashOperations<String, Object, Object> operations = null;
         return operations;
     }
 
@@ -120,8 +125,7 @@ public class CartServiceImpl implements CartService {
      * @date: 2021-03-03 22:09:36
      * @return: com.zmm.common.utils.redis.key.CartKey
      **/
-    private CartKey getCartKey() {
-        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+    private CartKey getCartKey(UserInfoTo userInfoTo) {
         // 1.判断是否登陆
         CartKey cartKey = CartKey.MALL_CART;
         if (userInfoTo.getUserId() != null){
@@ -132,5 +136,21 @@ public class CartServiceImpl implements CartService {
             cartKey.setSuffix(userInfoTo.getUserKey());
         }
         return cartKey;
+    }
+
+    @Override
+    public Cart getCart() {
+        Cart cart = new Cart();
+        // 需要区分登陆还是未登陆
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        CartKey cartKey = getCartKey(userInfoTo);
+        if (ObjectUtils.isEmpty(userInfoTo)){
+            // 未登陆 临时用户
+        } else {
+            // 已登陆
+            List<CartItem> cartItemList = redisUtil.hashValues(cartKey);
+            cart.setCartItems(cartItemList);
+        }
+        return null;
     }
 }

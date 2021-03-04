@@ -1,5 +1,6 @@
 package com.zmm.mall.product;
 
+import com.zmm.common.config.BaseConfigure;
 import com.zmm.mall.product.util.ProductScheduleUtils;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -9,6 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.springframework.stereotype.Component;
 
 /**
  * 1.整合  Mybatis-plus
@@ -141,4 +143,7 @@ public class MallProductApplication {
 		return new ProductScheduleUtils();
 	}
 
+	@Component
+	public class serviceConfigure extends BaseConfigure {
+	}
 }

@@ -1,8 +1,7 @@
 package com.bigdata.zmm.mall.cart.controller;
 
-import com.bigdata.zmm.mall.cart.interceptor.CartInterceptor;
 import com.bigdata.zmm.mall.cart.service.CartService;
-import com.bigdata.zmm.mall.cart.to.UserInfoTo;
+import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
@@ -43,9 +42,11 @@ public class CartController {
 
         // 1. 快速得到用户用户信息 id:user-key
         // 目标方法
-        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
 
-        return new ReqResult(ResultCode.SUCCESS);
+
+        Cart cart = cartService.getCart();
+
+        return new ReqResult(cart);
     }
     
     /**

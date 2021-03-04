@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @Author Administrator
  * @Date By 2021-03-03 21:02:36
  */
-@FeignClient(value = "mall-product",path = "localhost:5000")
+@FeignClient(value = "mall-product",url = "localhost:5000")
 public interface ProductFeignService {
 
     /**
