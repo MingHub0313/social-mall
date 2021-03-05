@@ -1,6 +1,7 @@
 package com.bigdata.zmm.mall.cart;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.bigdata.zmm.mall.cart.feign.ProductFeignService;
 import com.bigdata.zmm.mall.cart.vo.Cart;
@@ -40,6 +41,16 @@ public class MallCatApplicationTests {
 
     @Resource
     private Gson gson;
+
+    @Test
+    public void hashValueField(){
+        Cart cart = new Cart();
+        CartKey cartKey = CartKey.MALL_CART;
+        Object hash = redisUtil.hash(cartKey.setSuffix(3L), 3);
+        CartItem cartItem = JSONObject.parseObject(JSON.toJSONString(hash), CartItem.class);
+        log.info(cartItem.toString());
+
+    }
 
     @Test
     public void hashValues(){

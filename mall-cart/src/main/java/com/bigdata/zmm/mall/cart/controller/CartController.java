@@ -38,7 +38,7 @@ public class CartController {
      * @return: com.zmm.common.base.model.ReqResult
      **/
     @GetMapping("/cart")
-    public ReqResult cartListPage(){
+    public ReqResult cartListPage() throws ExecutionException, InterruptedException {
 
         // 1. 快速得到用户用户信息 id:user-key
         // 目标方法
@@ -62,6 +62,36 @@ public class CartController {
 
         CartItem cartItem = cartService.addToCart(skuId,number);
 
+        return new ReqResult(ResultCode.SUCCESS);
+    }
+
+    /**
+     * 选中商品
+     * @author: Administrator
+     * @date: 2021-03-05 19:57:12
+     * @param skuId: 商品skuId
+     * @param check: 是否被选中 1: 选中 0: 未选中
+     * @return: com.zmm.common.base.model.ReqResult
+     **/
+    @GetMapping("/checkItem")
+    public ReqResult checkItem(@RequestParam("skuId")Long skuId,@RequestParam("check") Integer check){
+        cartService.checkItem(skuId,check);
+        // 重定向购物车列表
+        return new ReqResult(ResultCode.SUCCESS);
+    }
+
+
+    @GetMapping("/countItem")
+    public ReqResult countItem(@RequestParam("skuId")Long skuId,@RequestParam("number") Integer number){
+        cartService.changeItemCount(skuId,number);
+        // 重定向购物车列表
+        return new ReqResult(ResultCode.SUCCESS);
+    }
+
+    @GetMapping("/deleteItem")
+    public ReqResult deleteCartItem(@RequestParam("skuId")Long skuId){
+        cartService.deleteCartItem(skuId);
+        // 重定向购物车列表
         return new ReqResult(ResultCode.SUCCESS);
     }
 }

@@ -1,6 +1,7 @@
 package com.bigdata.zmm.mall.cart.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.bigdata.zmm.mall.cart.feign.ProductFeignService;
 import com.bigdata.zmm.mall.cart.interceptor.CartInterceptor;
@@ -13,9 +14,11 @@ import com.zmm.common.utils.R;
 import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CartKey;
+import com.zmm.common.utils.redis.key.RedisKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
@@ -139,18 +142,79 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart getCart() {
+    public Cart getCart() throws ExecutionException, InterruptedException {
         Cart cart = new Cart();
         // 需要区分登陆还是未登陆
+        CartKey cartKey = CartKey.MALL_CART;
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
-        CartKey cartKey = getCartKey(userInfoTo);
         if (ObjectUtils.isEmpty(userInfoTo)){
             // 未登陆 临时用户
+            // 获取可临购物车的所有项
+            RedisKey tempCartKey = cartKey.setSuffix(userInfoTo.getUserKey());
+            List cartItemList = redisUtil.hashValues(tempCartKey);
+            List<CartItem> cartItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
+            cart.setCartItems(cartItems);
         } else {
-            // 已登陆
-            List<CartItem> cartItemList = redisUtil.hashValues(cartKey);
-            cart.setCartItems(cartItemList);
+            // 1.已登陆
+            // 真正的用户购物车的 key
+            RedisKey redisKey = cartKey.setSuffix(userInfoTo.getUserId());
+
+            // 2.如果临时购物车的数据还没有进行合并
+            RedisKey tempCartKey = cartKey.setSuffix(userInfoTo.getUserKey());
+            // 通过临时的key 获取临时购物车数据
+            List tempCartItemList = redisUtil.hashValues(tempCartKey);
+            if (!CollectionUtils.isEmpty(tempCartItemList)){
+                // 临时购物车商品不为空
+                List<CartItem> tempCartItems = JSON.parseArray(JSON.toJSONString(tempCartItemList), CartItem.class);
+                for (CartItem tempCartItem : tempCartItems){
+                    addToCart(tempCartItem.getSkuId(),tempCartItem.getCount());
+                }
+                // 合并临时数据后 要清空数据
+                clearCart(tempCartKey);
+            }
+            // 3.获取登陆后的购物车的全部数据(包含合并过来的临时购物车数据和已经登陆后购物车中的数据)
+            List cartItemList = redisUtil.hashValues(cartKey);
+            List<CartItem> allCrtItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
+            cart.setCartItems(allCrtItems);
         }
         return null;
+    }
+
+    @Override
+    public void clearCart(RedisKey redisKey) {
+        redisUtil.hashDelete(redisKey);
+    }
+
+    @Override
+    public void checkItem(Long skuId, Integer check) {
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        CartKey cartKey = getCartKey(userInfoTo);
+        CartItem cartItem = getCartItem(cartKey,skuId);
+        cartItem.setCheck(check == 1 ? true : false);
+        //String jsonString = JSON.toJSONString(cartItem);
+        redisUtil.hash(cartKey,skuId,cartItem);
+    }
+
+    private CartItem getCartItem(CartKey cartKey,Long skuId){
+        // 查询其内部对象
+        Object hash = redisUtil.hash(cartKey, skuId);
+        CartItem cartItem = JSONObject.parseObject(JSON.toJSONString(hash), CartItem.class);
+        return cartItem;
+    }
+
+    @Override
+    public void changeItemCount(Long skuId, Integer number) {
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        CartKey cartKey = getCartKey(userInfoTo);
+        CartItem cartItem = getCartItem(cartKey,skuId);
+        cartItem.setCount(number);
+        redisUtil.hash(cartKey,skuId,cartItem);
+    }
+
+    @Override
+    public void deleteCartItem(Long skuId) {
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        CartKey cartKey = getCartKey(userInfoTo);
+        redisUtil.hashDelete(cartKey,skuId);
     }
 }
