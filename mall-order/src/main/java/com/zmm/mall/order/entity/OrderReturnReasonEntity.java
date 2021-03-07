@@ -2,10 +2,11 @@ package com.zmm.mall.order.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 退货原因
@@ -14,6 +15,7 @@ import lombok.Data;
  * @email 1805783671@qq.com
  * @date 2020-08-21 11:50:05
  */
+@ToString
 @Data
 @TableName("oms_order_return_reason")
 public class OrderReturnReasonEntity implements Serializable {
