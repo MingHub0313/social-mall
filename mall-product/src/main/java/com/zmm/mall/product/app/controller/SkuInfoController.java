@@ -1,20 +1,15 @@
 package com.zmm.mall.product.app.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.zmm.mall.product.entity.SkuInfoEntity;
-import com.zmm.mall.product.service.SkuInfoService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.R;
+import com.zmm.mall.product.entity.SkuInfoEntity;
+import com.zmm.mall.product.service.SkuInfoService;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Map;
 
 
 /**
@@ -27,8 +22,23 @@ import com.zmm.common.utils.R;
 @RestController
 @RequestMapping("product/skuinfo")
 public class SkuInfoController {
-    @Autowired
+    @Resource
     private SkuInfoService skuInfoService;
+
+
+    /**
+     * 根据skuId 获取商品系统中的商品价格
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-08 22:39:42
+     * @param skuId: 
+     * @return: java.math.BigDecimal
+     **/
+    @GetMapping("/{skuId}/price")
+    public BigDecimal getPrice(@PathVariable("skuId") Long skuId){
+        SkuInfoEntity skuInfoEntity = skuInfoService.getById(skuId);
+        return skuInfoEntity.getPrice();
+    }
 
     /**
      * 列表

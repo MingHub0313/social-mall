@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.member.entity.MemberReceiveAddressEntity;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,5 +22,15 @@ public interface MemberReceiveAddressService extends IService<MemberReceiveAddre
      * @return
      */
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 根据 memberId 获取用户下的全部地址列表
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-08 22:16:58
+     * @param memberId :
+     * @return: java.util.List<com.zmm.mall.member.entity.MemberReceiveAddressEntity>
+     **/
+    List<MemberReceiveAddressEntity> getAddress(Long memberId);
 }
 

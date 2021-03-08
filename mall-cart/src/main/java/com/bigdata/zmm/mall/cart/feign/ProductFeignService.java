@@ -2,8 +2,11 @@ package com.bigdata.zmm.mall.cart.feign;
 
 import com.zmm.common.utils.R;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.math.BigDecimal;
 
 /**
  * @Description:
@@ -22,7 +25,7 @@ public interface ProductFeignService {
      * @return: com.zmm.common.utils.R
      **/
     @RequestMapping("/product/skuinfo/info/{skuId}")
-    public R getSkuInfo(@PathVariable("skuId") Long skuId);
+    R getSkuInfo(@PathVariable("skuId") Long skuId);
 
     /**
      * 远程查询 sku的 组合信息
@@ -32,5 +35,18 @@ public interface ProductFeignService {
      * @return: com.zmm.common.utils.R
      **/
     @RequestMapping("/product/skusaleattrvalue/find/sku/attr/values/{skuId}")
-    public R getSkuSaleAttrValues( @PathVariable("skuId") Long skuId);
+    R getSkuSaleAttrValues( @PathVariable("skuId") Long skuId);
+
+
+
+    /**
+     * 远程查询商品的真实价格
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-08 22:40:55
+     * @param skuId: 
+     * @return: java.math.BigDecimal
+     **/
+    @GetMapping("/product/skuinfo/{skuId}/price")
+    BigDecimal getPrice(@PathVariable("skuId") Long skuId);
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -23,6 +24,12 @@ public class CartController {
 
     @Resource
     private CartService cartService;
+
+    @GetMapping("/find/cartItems/user'")
+    public List<CartItem> getCartItemByUser(){
+        List<CartItem> cartItems = cartService.getCartItemByUser();
+        return cartItems;
+    }
 
 
     /**

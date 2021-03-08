@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * @Description:
@@ -202,6 +203,12 @@ public class CartServiceImpl implements CartService {
         return cartItem;
     }
 
+    private List<CartItem> getCartItems(CartKey cartKey){
+        List cartItemList = redisUtil.hashValues(cartKey);
+        List<CartItem> allCrtItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
+        return allCrtItems;
+    }
+
     @Override
     public void changeItemCount(Long skuId, Integer number) {
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
@@ -216,5 +223,27 @@ public class CartServiceImpl implements CartService {
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
         CartKey cartKey = getCartKey(userInfoTo);
         redisUtil.hashDelete(cartKey,skuId);
+    }
+
+    @Override
+    public List<CartItem> getCartItemByUser() {
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        if (userInfoTo.getUserId() == null){
+            return null;
+        } else {
+            CartKey cartKey = CartKey.MALL_CART;
+            RedisKey tempCartKey = cartKey.setSuffix(userInfoTo.getUserKey());
+            List cartItemList = redisUtil.hashValues(cartKey);
+            List<CartItem> allCrtItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
+            // 获取所有被选中的购物项
+            List<CartItem> itemList = allCrtItems.stream().filter(item ->
+                item.isCheck()
+            ).map(item ->{
+                // 更新为最新价格 -->去商品系统中查询
+                item.setPrice(productFeignService.getPrice(item.getSkuId()));
+                return item;
+            }).collect(Collectors.toList());
+            return itemList;
+        }
     }
 }

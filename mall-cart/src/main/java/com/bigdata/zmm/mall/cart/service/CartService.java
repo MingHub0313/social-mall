@@ -4,6 +4,7 @@ import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.zmm.common.utils.redis.key.RedisKey;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -68,4 +69,14 @@ public interface CartService {
      * @return: void
      **/
     void deleteCartItem(Long skuId);
+
+    /**
+     * 获取购物车中的所有信息 (从当前用户)
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-08 22:25:51
+     
+     * @return: java.util.List<com.bigdata.zmm.mall.cart.vo.CartItem>
+     **/
+    List<CartItem> getCartItemByUser();
 }

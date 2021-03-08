@@ -99,8 +99,19 @@
                     <groupId>io.netty</groupId>
                     <artifactId>lettuce-core</artifactId>
                 </exclusion>
+
+                <!--<exclusion>
+                    <groupId>io.lettuce</groupId>
+                    <artifactId>lettuce-core</artifactId>
+                </exclusion>-->
             </exclusions>
         </dependency>
+
+        <!-- 内存泄漏的问题-->
+        <!--<dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>-->
 
         <dependency>
             <groupId>com.google.code.gson</groupId>

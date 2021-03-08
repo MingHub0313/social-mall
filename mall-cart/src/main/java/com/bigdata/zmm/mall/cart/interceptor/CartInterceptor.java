@@ -24,6 +24,7 @@ import java.util.UUID;
  * @Author Administrator
  * @Date By 2021-02-28 23:18:40
  */
+@Component
 public class CartInterceptor implements HandlerInterceptor {
 
     public static ThreadLocal<UserInfoTo> threadLocal = new ThreadLocal<>();

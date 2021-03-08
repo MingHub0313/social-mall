@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -69,16 +70,22 @@ public class LoginController {
 
 
 	@PostMapping("/login")
-	public ReqResult login(@Valid LoginVo loginVo, BindingResult bindingResult){
+	public ReqResult login(@Valid LoginVo loginVo, BindingResult bindingResult, HttpSession session,
+						   RedirectAttributes redirectAttributes){
 		if (bindingResult.hasErrors()){
 			return paramVerify(bindingResult);
 		}
 		ReqResult result = memberFeignService.login(loginVo);
 		if (result.getResultCode() == NumberConstant.THOUSAND){
-			// 成功
+			// 成功 将用户信息放入session
+			//MemberEntity memberEntity = result.getData("data",new TypeReference<MemberEntity>(){})
+			//session.setAttribute(StringConstant.LOGIN_USER,memberEntity)
 			// "redirect:http://mall.com";
 		} else {
 			// 失败
+			Map<String,String> errors = new HashMap<>();
+			//errors.put("msg",result.getData("data",new TypeReference<MemberEntity>(){}));
+			redirectAttributes.addFlashAttribute("errors",errors);
 			// "redirect:http://auth.mall.com/login.html";
 		}
 		// 远程登录 重定向商场的首页地址
