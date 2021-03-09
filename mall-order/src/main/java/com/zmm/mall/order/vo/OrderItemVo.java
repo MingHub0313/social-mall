@@ -51,4 +51,14 @@ public class OrderItemVo {
      */
     private BigDecimal totalPrice;
 
+    /**
+     * 是否有库存
+     */
+    //private boolean hasStock;
+
+    /**
+     * 重量
+     */
+    private BigDecimal weight;
+
 }

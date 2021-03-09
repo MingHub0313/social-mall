@@ -6,6 +6,7 @@ import com.zmm.mall.order.entity.OrderEntity;
 import com.zmm.mall.order.vo.OrderConfirmVo;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 订单
@@ -25,6 +26,6 @@ public interface OrderService extends IService<OrderEntity> {
      * @date: 2021-03-08 22:10:54
      * @return: com.zmm.mall.order.vo.OrderConfirmVo
      **/
-    OrderConfirmVo confirmOrder();
+    OrderConfirmVo confirmOrder() throws ExecutionException, InterruptedException;
 }
 

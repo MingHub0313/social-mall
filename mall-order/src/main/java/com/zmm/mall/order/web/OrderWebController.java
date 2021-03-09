@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @Description:
@@ -24,7 +26,7 @@ public class OrderWebController {
 
 
     @GetMapping("/toTrade")
-    public ReqResult toTrade(Model model){
+    public ReqResult toTrade(Model model, HttpServletRequest httpServletRequest) throws ExecutionException, InterruptedException {
         //展示订单的的确认页
         OrderConfirmVo orderConfirmVo = orderService.confirmOrder();
         model.addAttribute("orderConfirmData",orderConfirmVo);

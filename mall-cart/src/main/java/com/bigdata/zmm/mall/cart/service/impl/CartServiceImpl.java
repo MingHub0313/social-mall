@@ -22,6 +22,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -240,7 +241,9 @@ public class CartServiceImpl implements CartService {
                 item.isCheck()
             ).map(item ->{
                 // 更新为最新价格 -->去商品系统中查询
-                item.setPrice(productFeignService.getPrice(item.getSkuId()));
+                R result = productFeignService.getPrice(item.getSkuId());
+                String price = (String)result.get("data");
+                item.setPrice(new BigDecimal(price));
                 return item;
             }).collect(Collectors.toList());
             return itemList;

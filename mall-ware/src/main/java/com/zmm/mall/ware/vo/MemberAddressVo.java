@@ -1,4 +1,4 @@
-package com.zmm.mall.order.vo;
+package com.zmm.mall.ware.vo;
 
 import lombok.Data;
 

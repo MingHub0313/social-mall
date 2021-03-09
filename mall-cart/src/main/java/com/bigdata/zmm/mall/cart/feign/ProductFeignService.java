@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.math.BigDecimal;
-
 /**
  * @Description:
  * @Name ProductFeignService
@@ -48,5 +46,5 @@ public interface ProductFeignService {
      * @return: java.math.BigDecimal
      **/
     @GetMapping("/product/skuinfo/{skuId}/price")
-    BigDecimal getPrice(@PathVariable("skuId") Long skuId);
+    R getPrice(@PathVariable("skuId") Long skuId);
 }

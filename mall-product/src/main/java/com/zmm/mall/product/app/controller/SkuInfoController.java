@@ -7,7 +7,6 @@ import com.zmm.mall.product.service.SkuInfoService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -35,9 +34,9 @@ public class SkuInfoController {
      * @return: java.math.BigDecimal
      **/
     @GetMapping("/{skuId}/price")
-    public BigDecimal getPrice(@PathVariable("skuId") Long skuId){
+    public R getPrice(@PathVariable("skuId") Long skuId){
         SkuInfoEntity skuInfoEntity = skuInfoService.getById(skuId);
-        return skuInfoEntity.getPrice();
+        return R.ok().setData(skuInfoEntity.getPrice().toString());
     }
 
     /**

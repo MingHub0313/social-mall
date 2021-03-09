@@ -25,6 +25,14 @@ public class CartController {
     @Resource
     private CartService cartService;
 
+    /**
+     * 获取当前用户选中的购物项
+     * 如果返回的是 json 格式 必须添加 @ResponseBody 或者 使用 @RestController
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-09 20:58:49
+     * @return: java.util.List<com.bigdata.zmm.mall.cart.vo.CartItem>
+     **/
     @GetMapping("/find/cartItems/user'")
     public List<CartItem> getCartItemByUser(){
         List<CartItem> cartItems = cartService.getCartItemByUser();
