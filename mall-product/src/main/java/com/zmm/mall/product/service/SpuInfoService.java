@@ -2,7 +2,6 @@ package com.zmm.mall.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.utils.PageUtils;
-import com.zmm.mall.product.entity.SpuInfoDescEntity;
 import com.zmm.mall.product.entity.SpuInfoEntity;
 import com.zmm.mall.product.vo.SpuSaveVo;
 
@@ -48,5 +47,15 @@ public interface SpuInfoService extends IService<SpuInfoEntity> {
 	 * @param spuId
 	 */
 	void up(Long spuId);
+
+	/**
+	 * 根据 skuId 查询 spu信息
+	 * @description:
+	 * @author: Administrator
+	 * @date: 2021-03-11 22:00:50
+	 * @param skuId: 
+	 * @return: com.zmm.mall.product.entity.SpuInfoEntity
+	 **/
+    SpuInfoEntity getSpuInfoBySkuId(Long skuId);
 }
 

@@ -10,14 +10,10 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,6 +55,12 @@ public final class RedisUtil<T> {
 		this.setTemplate = redisTemplate.opsForSet();
 		this.zSetTemplate = redisTemplate.opsForZSet();
 
+	}
+
+
+	public Long execute(String redisScript,RedisKey redisKey,String param){
+		Long execute = redisTemplate.execute(new DefaultRedisScript<Long>(redisScript, Long.class), Arrays.asList(redisKey.getKey()), param);
+		return execute;
 	}
 
 

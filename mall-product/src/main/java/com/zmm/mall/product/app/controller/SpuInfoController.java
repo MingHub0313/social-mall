@@ -1,20 +1,15 @@
 package com.zmm.mall.product.app.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import com.zmm.mall.product.vo.SpuSaveVo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.zmm.mall.product.entity.SpuInfoEntity;
-import com.zmm.mall.product.service.SpuInfoService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.R;
+import com.zmm.mall.product.entity.SpuInfoEntity;
+import com.zmm.mall.product.service.SpuInfoService;
+import com.zmm.mall.product.vo.SpuSaveVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.Map;
 
 
 
@@ -39,6 +34,13 @@ public class SpuInfoController {
     public R spuUp(@PathVariable("spuId") Long spuId){
         spuInfoService.up(spuId);
         return R.ok();
+    }
+
+    @GetMapping("/skuId/{id}")
+    public R getSpuInfoBySkuId(@PathVariable("id") Long skuId){
+        SpuInfoEntity spuInfo= spuInfoService.getSpuInfoBySkuId(skuId);
+        return R.ok().setData(spuInfo);
+
     }
 
     /**
