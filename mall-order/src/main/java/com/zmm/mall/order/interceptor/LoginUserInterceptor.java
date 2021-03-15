@@ -2,6 +2,7 @@ package com.zmm.mall.order.interceptor;
 
 import com.zmm.common.constant.StringConstant;
 import com.zmm.common.vo.MemberRespVo;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
  * @Author Administrator
  * @Date By 2021-03-08 21:35:32
  */
+@Component
 public class LoginUserInterceptor implements HandlerInterceptor {
     public static ThreadLocal<MemberRespVo> loginUser = new ThreadLocal<>();
 

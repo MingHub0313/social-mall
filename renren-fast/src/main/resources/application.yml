@@ -25,9 +25,9 @@ spring:
   redis:
     open: false  # 是否开启redis缓存  true开启   false关闭
     database: 0
-    host: localhost
+    host: 47.111.112.220
     port: 6379
-    password:    # 密码（默认为空）
+    password:    19961001zmm # 密码（默认为空）
     timeout: 6000ms  # 连接超时时长（毫秒）
     jedis:
       pool:
