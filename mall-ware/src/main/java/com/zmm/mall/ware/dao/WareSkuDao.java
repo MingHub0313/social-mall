@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * 商品库存
  *
@@ -29,4 +31,26 @@ public interface WareSkuDao extends BaseMapper<WareSkuEntity> {
 	 * @return
 	 */
 	Long getSkuStock(Long skuId);
+
+	/**
+	 * 根据 指定的 skuId 查询 库存地址
+	 * @description:
+	 * @author: Administrator
+	 * @date: 2021-03-16 20:22:56
+	 * @param skuId: 
+	 * @return: java.util.List<java.lang.Long>
+	 **/
+    List<Long> listWareIdHasSkuStock(@Param("skuId") Long skuId);
+
+    /**
+	 * 锁定库存
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-16 20:37:28
+     * @param skuId: 
+     * @param wareId: 
+     * @param num: 
+     * @return: java.lang.Integer
+     **/
+	Integer lockSkuStock(@Param("skuId") Long skuId, @Param("wareId") Long wareId, @Param("num") Integer num);
 }

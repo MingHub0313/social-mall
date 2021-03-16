@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.enums.OrderStatusEnum;
+import com.zmm.common.exception.NoStockException;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
 import com.zmm.common.utils.R;
@@ -21,10 +22,13 @@ import com.zmm.mall.order.feign.MemberFeignService;
 import com.zmm.mall.order.feign.ProductFeignService;
 import com.zmm.mall.order.feign.WareFeignService;
 import com.zmm.mall.order.interceptor.LoginUserInterceptor;
+import com.zmm.mall.order.service.OrderItemService;
 import com.zmm.mall.order.service.OrderService;
 import com.zmm.mall.order.to.OrderCreatTo;
 import com.zmm.mall.order.vo.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
@@ -32,10 +36,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -47,6 +48,11 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
 
     private ThreadLocal<OrderSubmitVo> submitVoThreadLocal = new ThreadLocal<>();
+
+
+
+    @Resource
+    private OrderItemService orderItemService;
 
     @Resource
     private MemberFeignService memberFeignService;
@@ -130,11 +136,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     }
 
 
+    @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
         submitVoThreadLocal.set(orderSubmitVo);
         SubmitOrderResponseVo response = new SubmitOrderResponseVo();
         MemberRespVo memberRespVo = LoginUserInterceptor.loginUser.get();
+        response.setCode(0);
 
         OrderKey orderKey = OrderKey.USER_ORDER_TOKEN;
 
@@ -166,12 +174,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         Long result = redisUtil.execute(script,redisKey,orderToken);
         if (result == 0){
             // 令牌验证失败
-            response.setCode(0);
+            response.setCode(1);
             return response;
         }
 
         // 2.创建订单
-        OrderCreatTo orderCreatTo = createOrder();
+        OrderCreatTo orderCreatTo = createOrder(memberRespVo.getId());
 
         // 3.验价格
         BigDecimal payAmount = orderCreatTo.getOrderEntity().getPayAmount();
@@ -183,12 +191,56 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             return response;
         }
 
+        // TODO 4.保存订单 出现异常 订单回滚 √
+        saveOrder(orderCreatTo);
 
-        // 4.锁库存 ...
-        return null;
+
+        // 5.锁库存 ... 如果有异常回滚订单数据
+        // 5.1订单号 5.2所有订单项(skuId,skuName,num)
+        WareSkuLockVo skuLockVo = new WareSkuLockVo();
+        skuLockVo.setOrderSn(orderCreatTo.getOrderEntity().getOrderSn());
+        List<OrderItemVo> orderItemVos = orderCreatTo.getOrderItemEntities().stream().map(item -> {
+            OrderItemVo itemVo = new OrderItemVo();
+            itemVo.setSkuId(item.getSkuId());
+            itemVo.setCount(item.getSkuQuantity());
+            itemVo.setTitle(item.getSkuName());
+            return itemVo;
+        }).collect(Collectors.toList());
+        skuLockVo.setLocks(orderItemVos);
+        /**
+         * Transactional --> 在分布式系统,只能控制住自己的回滚 控制不了其他服务的回滚
+         * 本地事务 出现的问题
+         * 由异常导致的事务问题:
+         * QUESTION 1 本身远程锁库存成功 但是因为网络原因 导致出现异常 从而影响 订单创建回滚                 ==>库存锁成功 但是订单回滚了   (远程服务假失败 真是的库存锁成功)
+         * QUESTION 2 本身远程锁库存成功 但是因为调用其他服务出现异常 已执行的远程请求,肯定不能回滚            ==>库存锁成功 但是订单回滚了
+         * 应该使用 分布式事务 ===> 最大原因 网络问题 + 分布式机器
+         */
+        // TODO 6.远程锁库存 ==> 远程执行失败 需要将上面执行的操作全部回滚 (需要抛出去才能@Transactional 生效) QUESTION 1 [可能会超时 --> 会抛出异常(读取超时),但是库存锁成功了 但因为(假)异常 订单回滚了]
+        R r = wareFeignService.orderLockStock(skuLockVo);
+        if (r.getCode() == 0){
+            // 锁定成功
+            response.setOrderEntity(orderCreatTo.getOrderEntity());
+            // TODO 7.远程扣减积分 如果出现异常 -->进行回滚  -->订单可以回滚   √ 但是 远程的锁库存服务无法回滚 QUESTION 2 [订单回滚,库存不回滚]
+            // int i = 10/0;
+        } else {
+            // 锁定失败
+            // TODO 如何库存出现异常 1.远程的库存服务会自动回滚 2.然后保存订单也会回滚 (异常机制-- 感知异常进行回滚)
+            String msg = (String)r.get("msg");
+            throw new NoStockException(3L);
+            //response.setCode(3);
+        }
+        return response;
     }
 
-
+    private void saveOrder(OrderCreatTo orderCreatTo) {
+        OrderEntity orderEntity = orderCreatTo.getOrderEntity();
+        // 设置值
+        orderEntity.setModifyTime(new Date());
+        this.save(orderEntity);
+        List<OrderItemEntity> orderItemEntities = orderCreatTo.getOrderItemEntities();
+        // 批量插入数据库
+        orderItemService.saveBatch(orderItemEntities);
+    }
 
 
     /**
@@ -198,17 +250,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * @date: 2021-03-11 22:11:02
      * @return: com.zmm.mall.order.to.OrderCreatTo
      **/
-    private OrderCreatTo createOrder(){
+    private OrderCreatTo createOrder(Long userId){
         OrderCreatTo orderCreatTo = new OrderCreatTo();
 
-        OrderEntity orderEntity = buildOrder();
-        orderCreatTo.setOrderEntity(orderEntity);
+        OrderEntity orderEntity = buildOrder(userId);
+
 
         // 2.获取到所有的的订单项
         List<OrderItemEntity> orderItemEntities = buildOrderItems(orderEntity.getOrderSn());
-        orderCreatTo.setOrderItemEntities(orderItemEntities);
+
         // 3.计算价格、积分相关信息
         computePrice(orderEntity,orderItemEntities);
+
+        orderCreatTo.setOrderEntity(orderEntity);
+        orderCreatTo.setOrderItemEntities(orderItemEntities);
         return orderCreatTo;
     }
 
@@ -275,11 +330,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      
      * @return: com.zmm.mall.order.entity.OrderEntity
      **/
-    private OrderEntity buildOrder() {
+    private OrderEntity buildOrder(Long userId) {
         OrderEntity orderEntity = new OrderEntity();
         // 1.生成一个订单号
         String orderSn = IdWorker.getTimeId();
         orderEntity.setOrderSn(orderSn);
+        orderEntity.setMemberId(userId);
         // 2.获取收货地址信息
         OrderSubmitVo orderSubmitVo = submitVoThreadLocal.get();
         R result = wareFeignService.getFare(orderSubmitVo.getAddrId());

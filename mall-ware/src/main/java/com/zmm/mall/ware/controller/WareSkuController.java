@@ -1,10 +1,13 @@
 package com.zmm.mall.ware.controller;
 
+import com.zmm.common.exception.BizCodeEnums;
+import com.zmm.common.exception.NoStockException;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.R;
 import com.zmm.mall.ware.entity.WareSkuEntity;
 import com.zmm.mall.ware.service.WareSkuService;
 import com.zmm.mall.ware.vo.SkuHasStockVo;
+import com.zmm.mall.ware.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +29,25 @@ import java.util.Map;
 public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
+
+
+    /**
+     * 保存订单成功锁库存
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-16 20:08:46
+     * @param vo: 
+     * @return: com.zmm.common.utils.R
+     **/
+    @PostMapping("/lock/order")
+    public R orderLockStock(@RequestBody WareSkuLockVo vo){
+        try {
+            boolean stock = wareSkuService.orderLockStock(vo);
+            return R.ok();
+        } catch (NoStockException e) {
+            return R.error(BizCodeEnums.NO_STOCK_EXCEPTION.getCode(),BizCodeEnums.NO_STOCK_EXCEPTION.getMsg());
+        }
+    }
 
     @PostMapping("/has/stock")
     public R getSkuHasStock(@RequestBody List<Long> skuIds){

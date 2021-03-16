@@ -2,10 +2,12 @@ package com.zmm.mall.order.web;
 
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
+import com.zmm.common.exception.NoStockException;
 import com.zmm.mall.order.service.OrderService;
 import com.zmm.mall.order.vo.OrderConfirmVo;
 import com.zmm.mall.order.vo.OrderSubmitVo;
 import com.zmm.mall.order.vo.SubmitOrderResponseVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,7 @@ import java.util.concurrent.ExecutionException;
  * @Author Administrator
  * @Date By 2021-03-08 21:33:31
  */
+@Slf4j
 @RestController
 public class OrderWebController {
 
@@ -55,17 +58,43 @@ public class OrderWebController {
      * @return: com.zmm.common.base.model.ReqResult
      **/
     @PostMapping("/submit/order")
-    public ReqResult submitOrder(OrderSubmitVo orderSubmitVo){
+    public ReqResult submitOrder(OrderSubmitVo orderSubmitVo) {
         // 创建订单 验令牌 验价格 锁库存 ...
-        SubmitOrderResponseVo submitOrderResponseVo = orderService.submitOrder(orderSubmitVo);
+        try {
+            SubmitOrderResponseVo submitOrderResponseVo = orderService.submitOrder(orderSubmitVo);
 
 
-        if (submitOrderResponseVo.getCode() == 0){
-            // 下单失败 回到订单确认页 重新确认订单信息
-            // return "redirect:http://order.mall.com/toTrade"
-            // 下单失败的后续操作 ...
+            if (submitOrderResponseVo.getCode() == 0) {
+                // 重定向携带数据 ==> 使用 RedirectAttributes redirectAttributes
+                String msg = "下单失败";
+                switch (submitOrderResponseVo.getCode()) {
+                    case 1:
+                        msg += "订单信息过期,青刷新再次提交";
+                        break;
+                    case 2:
+                        msg += "订单价格发生变化,请确认后再次提交";
+                        break;
+                    case 3:
+                        msg += "库存锁定失败.商品库存不足";
+                        break;
+                }
+                // redirectAttributes.addFlashAttribute("msg",msg)
+                log.error("下单失败提示信息:[{}]", msg);
+                // 下单失败 回到订单确认页 重新确认订单信息
+                // return "redirect:http://order.mall.com/toTrade"
+                // 下单失败的后续操作 ...
+            }
+            // Model model
+            //model.addAttribute("submitOrderResp",submitOrderResponseVo)
+            // return "pay"
+            // 下单成功 来到支付选择页
+            return new ReqResult(ResultCode.SUCCESS);
+        } catch (Exception e) {
+            if ( e instanceof NoStockException) {
+                String message = ((NoStockException) e).getMessage();
+                // redirectAttributes.addFlashAttribute("msg",msg)
+            }
         }
-        // 下单成功 来到支付选择页
         return new ReqResult(ResultCode.SUCCESS);
     }
 }
