@@ -113,6 +113,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         return new PageUtils(page);
     }
 
+    /**
+     * 其中有两处远程服务调用 使用用 全局事务的 AT做分布式事务
+     * @GlobalTransaction
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-18 21:59:08
+     * @param vo:
+     * @return: void
+     **/
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void saveSpuInfo(SpuSaveVo vo) {

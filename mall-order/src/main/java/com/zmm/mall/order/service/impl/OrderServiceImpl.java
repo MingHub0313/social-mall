@@ -135,6 +135,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
+    /**
+     * 下单 高并发场景 @GlobalTransaction 高并发中 不考虑使用 AT/TCC
+     * 一般使用 消息的模式 ===> 可靠消息+最终一致性
+     * @description:
+     * @author: Administrator
+     * @date: 2021-03-18 22:01:19
+     * @param orderSubmitVo: 
+     * @return: com.zmm.mall.order.vo.SubmitOrderResponseVo
+     **/
 
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
@@ -223,7 +232,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // TODO 7.远程扣减积分 如果出现异常 -->进行回滚  -->订单可以回滚   √ 但是 远程的锁库存服务无法回滚 QUESTION 2 [订单回滚,库存不回滚]
             // int i = 10/0;
         } else {
-            // 锁定失败
+            // 锁定失败 ---> 为了保证高并发 库存系统自己会难回滚 1.可以发消息给库存服务 / 2.库存服务本身也可以使用自动解锁模式 (消息队列)
             // TODO 如何库存出现异常 1.远程的库存服务会自动回滚 2.然后保存订单也会回滚 (异常机制-- 感知异常进行回滚)
             String msg = (String)r.get("msg");
             throw new NoStockException(3L);

@@ -120,6 +120,24 @@ import org.springframework.stereotype.Component;
  * 		4).总结:
  * 			常规数据(读多写少,即时性,一致性要求不高的数据) : 完全可以使用 Spring-Cache 写模式 只要缓存的数据有过期时间就足够了
  * 			特殊数据 : 特殊处理
+ *
+ *
+ * 	Seata 实现分布式事务步骤
+ * 		1).每一个微服务都必须先创建一个 undo_log表
+ * 		2).安装事务协调器:seata-server :https://github.com/seata/seata/releases
+ * 		3).整合
+ * 			(1).依赖 :spring-cloud-starter-alibaba-seata seata-all 0.7.1
+ * 			(2).启动 seata-server 服务器
+ * 				registry.type:配置 nacos 并编写的地址 47.111.112.220:8848
+ * 				registry.config:conf
+ * 				默认的 使用的是 file.conf
+ * 		4).开启全局事务@GlobalTransasactional 每一个远程的小事务 使用@Transasactional
+ * 		5).所有想要用到分布式事务的微服务使用 seata DataSourceConfig代理自己的数据源
+ * 		6).每个微服务,都必须导入 registry.conf file.conf
+ * 			vgroup_mapping.{当前应用名}-fescar-service-group = "default"
+ * 		7).启动服务进行测试
+ * 		https://github.com/seata/seata-samples
+ *
  */
 /**
  * @Name MallProductApplication

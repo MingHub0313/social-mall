@@ -1,11 +1,17 @@
 package com.zmm.mall.ware.config;
 
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
+import com.zaxxer.hikari.HikariDataSource;
+import io.seata.rm.datasource.DataSourceProxy;
 import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 
 /**
  * @Name WareMyBatisConfig
@@ -16,6 +22,20 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @MapperScan("com.zmm.mall.ware.dao")
 @Configuration
 public class WareMyBatisConfig {
+
+	@Resource
+	private DataSourceProperties dataSourceProperties;
+
+	@Bean
+	public DataSource dataSource(DataSourceProperties dataSourceProperties){
+		// properties.initializeDataSourceBuilder().type(type).build();
+		HikariDataSource dataSource = dataSourceProperties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
+		if (StringUtils.hasText(dataSourceProperties.getName())){
+			dataSource.setPoolName(dataSourceProperties.getName());
+		}
+		return new DataSourceProxy(dataSource);
+	}
+
 
 	/**
 	 * 引入分页插件
