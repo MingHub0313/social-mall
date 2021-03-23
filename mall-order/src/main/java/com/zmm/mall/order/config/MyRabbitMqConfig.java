@@ -1,7 +1,10 @@
 package com.zmm.mall.order.config;
 
+import com.rabbitmq.client.Channel;
+import com.zmm.mall.order.entity.OrderEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -11,6 +14,9 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Description:
@@ -90,5 +96,76 @@ public class MyRabbitMqConfig {
                 log.error("Fail Message!!!===>message:[{}]===>replyCode:[{}]===>replyText:[{}]===>exchange:[{}]===>routingKey:[{}]",message,replyCode,replyText,exchange,routingKey);
             }
         });
+    }
+
+    /**
+     * @Bean exchange Binding Queue
+     * 容器中的组件 使用 @Bean 都会自动创建 (前提是 RabbitMq中没有的情况)
+     * RabbitMq 如果有了 某些属性 路由、queue，服务再次重启不会进行覆盖 --->需要手动删除
+     * @return
+     */
+
+    @Bean
+    public Queue orderDelayQueue(){
+        // 死信队列
+        // name:队列的名称 durable:是不是持久化 exclusive:是不是排它的 autoDelete:是不是自动删除的
+        //Queue(String name, boolean durable, boolean exclusive, boolean autoDelete)
+
+        /**
+         * 设置死信队列 -- 自定义参数
+         * x-dead-letter-exchange : order-event-exchange
+         * x-dead-letter-routing-key: order.release.order
+         * x-message-ttl: 60000 /毫秒
+         */
+        Map<String,Object> arguments = new HashMap<>();
+        arguments.put("x-dead-letter-exchange","order-event-exchange");
+        arguments.put("x-dead-letter-routing-key","order.release.order");
+        arguments.put("x-message-ttl",60000);
+
+        Queue queue = new Queue("order.delay.queue", true, false, false,arguments);
+        return queue;
+    }
+
+    @Bean
+    public Queue orderReleaseOrderQueue(){
+        // 普通的队列
+        Queue queue = new Queue("order.release.order.queue", true, false, false);
+        return queue;
+    }
+
+    @Bean
+    public Exchange orderEventExchange(){
+
+        // name: 交换机的名称 durable:是否持久化 autoDelete: 是否自动删除 arguments: 自定义参数
+        //String name, boolean durable, boolean autoDelete, Map<String, Object> arguments
+        return new TopicExchange("order-event-exchange",true,false);
+    }
+
+
+    @Bean
+    public Binding orderCreateOrderBinding(){
+        // destination: 目的地 destinationType: 目的地的类型 exchange: 交换机 routingKey: 路由键 arguments: 自定义参数
+        //String destination, Binding.DestinationType destinationType, String exchange, String routingKey, Map<String, Object> arguments
+        return new Binding("order.delay.queue",
+                Binding.DestinationType.QUEUE,
+                "order-event-exchange",
+                "order.create.order",
+                null);
+    }
+
+    @Bean
+    public Binding orderReleaseOrderBinding(){
+        return new Binding("order.release.order.queue",
+                Binding.DestinationType.QUEUE,
+                "order-event-exchange",
+                "order.release.order",
+                null);
+    }
+
+    @RabbitListener(queues = "order.release.order.queue")
+    public void listenerOrder(OrderEntity orderEntity, Channel channel,Message message) throws IOException {
+        System.out.println("收到过期的订单信息:准备关闭订单"+orderEntity.getOrderSn());
+        channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
+
     }
 }
