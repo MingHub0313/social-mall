@@ -30,6 +30,7 @@ public enum ResultCode implements RespCode {
 	
 	TEST_REDIS_KEY_NULL(-111111,"测试redis: key-value 为空对象"),
 	APP_FAIL(999999, "服务请求失败"),
+	REMOTE_SERVICE_FAIL(888888,"远程服务调用失败"),
 	
 
 

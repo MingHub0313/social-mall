@@ -21,5 +21,16 @@ public interface WareOrderTaskService extends IService<WareOrderTaskEntity> {
      * @return
      */
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 根据订单号 查询工作单的状态
+     * @author: 900045
+     * @date: 2021-03-24 15:21:12
+     * @throws 
+     * @param orderSn: 
+     * @return: com.zmm.mall.ware.entity.WareOrderTaskEntity
+     **/
+	WareOrderTaskEntity getOrderTaskByOrderSn(String orderSn);
+	
 }
 

@@ -85,6 +85,7 @@ public class MallCatApplicationTests {
         }
 
         CartItem cartItem = new CartItem();
+        /*
         // 1.根据 skuId 远程查询当前商品的信息
         CompletableFuture<Void> futureSkuInfo = CompletableFuture.runAsync(() -> {
             R skuInfo = productFeignService.getSkuInfo(skuId);
@@ -108,7 +109,7 @@ public class MallCatApplicationTests {
         }, executor);
         // 4.阻塞线程
         CompletableFuture.allOf(futureSkuInfo, futureAttrValues).get();
-        String jsonString = JSON.toJSONString(cartItem);
+        String jsonString = JSON.toJSONString(cartItem);*/
         // 可能会出现问题 一定要等到 上面两个异步执行完成后
         // 操作 Redis 的方案 一.
         //cartOps.put(skuId.toString(), jsonString);

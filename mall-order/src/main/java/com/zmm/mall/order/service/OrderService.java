@@ -40,5 +40,24 @@ public interface OrderService extends IService<OrderEntity> {
      **/
     SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo);
 
+    /**
+     * 根据订单号获取订单
+     * @author: 900045
+     * @date: 2021-03-24 13:45:27
+     * @throws 
+     * @param orderSn: 
+     * @return: com.zmm.mall.order.entity.OrderEntity
+     **/
+	OrderEntity getOrderByOrderSn(String orderSn);
+
+	/**
+	 * 使用延迟队列 定时关闭订单
+	 * @author: 900045
+	 * @date: 2021-03-24 14:43:14
+	 * @throws 
+	 * @param orderEntity: 
+	 * @return: void
+	 **/
+	void closeOrder(OrderEntity orderEntity);
 }
 

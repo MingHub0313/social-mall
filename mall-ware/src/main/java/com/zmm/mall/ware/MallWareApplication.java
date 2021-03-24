@@ -1,6 +1,7 @@
 package com.zmm.mall.ware;
 
 
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -11,6 +12,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * @email 1805783671@qq.com
  * @date 2020-08-21 15:20:08
  */
+@EnableRabbit
 @EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication

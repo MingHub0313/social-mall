@@ -74,6 +74,14 @@ public class MyRabbitMqConfig {
             @Override
             public void confirm(CorrelationData correlationData, boolean ack, String cause) {
                 //convertAndSend 第四个参数: 指定的唯一ID
+                // 服务器收到了
+                // 防止消息丢失
+                /**
+                 * 1.做好消息的确认机制 (publisher、consumer 【手动 ack】)
+                 * 2.每一个发送的消息都在数据库做好记录.定期将失败的消息(无论是消息失败还是服务器未抵达的失败)再次发送.
+                 */
+                
+                // 防止消息重复
                 log.info("confirms...correlationData:[{}]===>ack:[{}]===>cause:[{}]",correlationData, ack,cause);
             }
         });
@@ -93,6 +101,7 @@ public class MyRabbitMqConfig {
              **/
             @Override
             public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
+                // 发生错误 --> 修改数据库当前的消息状态
                 log.error("Fail Message!!!===>message:[{}]===>replyCode:[{}]===>replyText:[{}]===>exchange:[{}]===>routingKey:[{}]",message,replyCode,replyText,exchange,routingKey);
             }
         });
@@ -162,10 +171,16 @@ public class MyRabbitMqConfig {
                 null);
     }
 
-    @RabbitListener(queues = "order.release.order.queue")
-    public void listenerOrder(OrderEntity orderEntity, Channel channel,Message message) throws IOException {
-        System.out.println("收到过期的订单信息:准备关闭订单"+orderEntity.getOrderSn());
-        channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
-
+    /**
+     * 订单释放直接 和 库存 释放进行绑定
+     * @return
+     */
+    @Bean
+    public Binding orderReleaseOtherBinding(){
+        return new Binding("stock.release.stock.queue",
+                Binding.DestinationType.QUEUE,
+                "order-event-exchange",
+                "order.release.other.#",
+                null);
     }
 }

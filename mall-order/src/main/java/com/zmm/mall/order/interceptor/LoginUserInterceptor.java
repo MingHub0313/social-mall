@@ -3,6 +3,7 @@ package com.zmm.mall.order.interceptor;
 import com.zmm.common.constant.StringConstant;
 import com.zmm.common.vo.MemberRespVo;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -31,6 +32,14 @@ public class LoginUserInterceptor implements HandlerInterceptor {
      **/
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        
+        // 指定路径放行
+        String requestURI = request.getRequestURI();
+        boolean match = new AntPathMatcher().match("/order/order/status/**", requestURI);
+        if (match) {
+            return true;
+        }
+        
         Object attribute = request.getSession().getAttribute(StringConstant.LOGIN_USER);
         if (ObjectUtils.isEmpty(attribute)){
             // 没有登陆就去登陆 重定向到登陆页面

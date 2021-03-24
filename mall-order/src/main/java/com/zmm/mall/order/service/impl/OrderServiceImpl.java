@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.enums.OrderStatusEnum;
 import com.zmm.common.exception.NoStockException;
+import com.zmm.common.to.mq.OrderTo;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
 import com.zmm.common.utils.R;
@@ -26,6 +27,9 @@ import com.zmm.mall.order.service.OrderItemService;
 import com.zmm.mall.order.service.OrderService;
 import com.zmm.mall.order.to.OrderCreatTo;
 import com.zmm.mall.order.vo.*;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +39,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.annotation.Resource;
+import javax.xml.crypto.Data;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +55,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private ThreadLocal<OrderSubmitVo> submitVoThreadLocal = new ThreadLocal<>();
 
 
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Resource
     private OrderItemService orderItemService;
@@ -231,14 +238,87 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             response.setOrderEntity(orderCreatTo.getOrderEntity());
             // TODO 7.远程扣减积分 如果出现异常 -->进行回滚  -->订单可以回滚   √ 但是 远程的锁库存服务无法回滚 QUESTION 2 [订单回滚,库存不回滚]
             // int i = 10/0;
+            // TODO 订单创建成功 发送消息给 MQ
+            rabbitTemplate.convertAndSend("order-event-exchange","order.create.order",orderCreatTo.getOrderEntity());
         } else {
             // 锁定失败 ---> 为了保证高并发 库存系统自己会难回滚 1.可以发消息给库存服务 / 2.库存服务本身也可以使用自动解锁模式 (消息队列)
             // TODO 如何库存出现异常 1.远程的库存服务会自动回滚 2.然后保存订单也会回滚 (异常机制-- 感知异常进行回滚)
             String msg = (String)r.get("msg");
             throw new NoStockException(3L);
-            //response.setCode(3);
+            //response.setCode(3)
         }
         return response;
+    }
+
+    @Override
+    public OrderEntity getOrderByOrderSn(String orderSn) {
+        OrderEntity orderEntity = this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
+        return orderEntity;
+    }
+
+    @Override
+    public void closeOrder(OrderEntity orderEntity) {
+        // 1.查询当前订单的最新状态
+        OrderEntity currentOrder = this.getById(orderEntity.getId());
+        if (currentOrder.getStatus().equals(OrderStatusEnum.CREATE_NEW.getCode())){
+            // 2.进行关单
+            OrderEntity updateOrder = new OrderEntity();
+            updateOrder.setId(orderEntity.getId());
+            updateOrder.setStatus(OrderStatusEnum.CANCELED.getCode());
+            updateOrder.setModifyTime(new Date());
+            this.updateById(updateOrder);
+            // 订单解锁成功后  再发一个消息告诉 mq
+            //  释放订单 的消息 以 order-event-exchange 发出 同时 order-event-exchange 绑定了 库存解锁的队列
+            //  还要再解锁监听这个消息
+            OrderTo orderTo = new OrderTo();
+            BeanUtils.copyProperties(currentOrder,orderTo);
+            /**
+             * 防止消息丢失: -- 分布式事务最终一致性就是防止消息丢失
+             * 
+             * 1.消息丢失 
+             *      解决方案:   数据库做好日志记录(消息记录)
+             * 2.消息抵达Broker Broker要将消息写入磁盘(持久化)才算持久化成功 如果Broker尚未持久化完成 发生宕机
+             *      解决方案:   消息确认机制 -- 可靠抵达 (生产者的确认模式)
+             * 3.自动ACK的状态下.消费者收到消息,但没来得及处理 服务器宕机了
+             *      解决方案:   一定开启手动 ACK ,消费成功才移除,失败或者没来得及处理就 noACK 并重新加入队列
+             * 
+             */
+
+            /**
+             * 防止消息重复:
+             *      1).消息消费成功,事物已经提交,ack 时 机器宕机.导致没有ack 成功.
+             *      
+             *      2).消息消费成功,由于重试机制,自动又将消息发送出去
+             *      
+             *      3).成功消费,ack宕机 消息由 unAck 状态变成ready ,Broker 又重新发送. 
+             *      
+             *    处理方案:
+             *              a.消费者的业务消息接口应该设计为幂等性的.比如扣库存有工作单的状态标志
+             *              b.使用防重表(redis/mysql), 发送消息每一个都有业务的唯一标识,处理过就不用处理
+             *              c.rabbitmq 的每一个消息都有 redelivered 字段,可以获取是否被重新投递过来的而不是第一次投递.
+             */
+
+
+            /**
+             * 消息积压:
+             *  1).消费者宕机积压
+             *  2).消费者消费能力不足积压
+             *  3).发送者发送流量太大
+             *  
+             *  处理方案:
+             *              a.上线更多的消费者,进行正常消费
+             *              b.上线专门的队列消费服务,将消息先批量取出来,记录数据库 ,离线慢慢处理.
+             */
+            try {
+                // TODO 保证消息一定会发送出去 / 每一个消息都可以做好日志记录 (给数据库保存每一个消息的详情信息)
+                // TODO 定期扫描数据库将失败的消息再发送一遍
+                rabbitTemplate.convertAndSend("order-event-exchange", "order.release.other", orderTo);
+            } catch (Exception e){
+                // 出现问题 将没有发送成功的消息进行重试发送
+                //while(true)
+            }
+            
+        }
     }
 
     private void saveOrder(OrderCreatTo orderCreatTo) {
