@@ -12,7 +12,7 @@ import java.util.List;
  * @Author Administrator
  * @Date By 2021-03-08 22:42:46
  */
-@FeignClient(name = "mall-cart",url = "127.0.0.1:0000")
+@FeignClient(name = "mall-cart",url = "127.0.0.1:88/api")
 public interface CartFeignService {
 
 

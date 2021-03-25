@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,8 @@ public class ScheduleSettingConfig implements SchedulingConfigurer {
 	@Override
 	public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 		// 获取所有任务
-		List<ScheduleJobEntity> scheduleList = scheduleDao.getScheduleList();
+		//List<ScheduleJobEntity> scheduleList = scheduleDao.getScheduleList()
+		List<ScheduleJobEntity> scheduleList = new ArrayList<>();
 		log.error("数据库的集合size----->{}",scheduleList.size());
 		if (!CollectionUtils.isEmpty(scheduleList)) {
       		for (ScheduleJobEntity s : scheduleList) {

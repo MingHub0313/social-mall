@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @Author 900045
  * @Created by 2020/9/4 0004
  */
-@FeignClient("mall-product")
+@FeignClient(name = "mall-product",url = "127.0.0.1:88/api")
 public interface ProductFeignService {
 
 	/**

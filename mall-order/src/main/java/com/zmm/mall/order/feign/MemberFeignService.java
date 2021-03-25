@@ -13,7 +13,7 @@ import java.util.List;
  * @Author Administrator
  * @Date By 2021-03-08 22:13:46
  */
-@FeignClient(name = "mall-member",url = "127.0.0.1:0000")
+@FeignClient(name = "mall-member",url = "127.0.0.1:88/api")
 public interface MemberFeignService {
 
 

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  * @name OrderFeignService
  * @date By 2021-03-24 13:47:46
  */
-@FeignClient(name = "mall-member",url = "127.0.0.1:0000")
+@FeignClient(name = "mall-member",url = "127.0.0.1:88/api")
 public interface OrderFeignService {
 
 

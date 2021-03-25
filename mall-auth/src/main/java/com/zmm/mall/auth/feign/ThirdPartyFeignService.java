@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @date By 2021-02-24 14:56:28
  * @FeignClient(value = "mall-third-party")
  */
-@FeignClient(value = "mall-third-party",url = "localhost:13000")
+@FeignClient(value = "mall-third-party",url = "127.0.0.1:88/api")
 public interface ThirdPartyFeignService {
 
 	/**

@@ -149,7 +149,7 @@ import org.springframework.stereotype.Component;
 @EnableDiscoveryClient
 @MapperScan("com.zmm.mall.product.dao")
 @SpringBootApplication
-@EnableScheduling
+//@EnableScheduling
 public class MallProductApplication {
 
 	public static void main(String[] args) {

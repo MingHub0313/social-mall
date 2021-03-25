@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @Author 900045
  * @Created by 2020/8/22 0022
  */
-@FeignClient("mall-coupon")
+@FeignClient(name = "mall-coupon",url = "127.0.0.1:88/api")
 public interface CouponFeign {
 
 	@RequestMapping("/coupon/coupon/member/list")

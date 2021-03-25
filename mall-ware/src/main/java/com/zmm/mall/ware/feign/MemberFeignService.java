@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @Author Administrator
  * @Date By 2021-03-09 21:34:08
  */
-@FeignClient(name = "mall-member",url = "127.0.0.1:0000")
+@FeignClient(name = "mall-member",url = "127.0.0.1:88/api")
 public interface MemberFeignService {
 
 

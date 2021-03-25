@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @Author 900045
  * @Created by 2020/9/3 0003
  */
-@FeignClient("mall-coupon")
+@FeignClient(name = "mall-coupon",url = "127.0.0.1:88/api")
 public interface CouponFeignService {
 
 	/**

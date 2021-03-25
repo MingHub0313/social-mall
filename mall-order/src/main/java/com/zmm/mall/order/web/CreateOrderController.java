@@ -3,6 +3,7 @@ package com.zmm.mall.order.web;
 import com.zmm.mall.order.entity.OrderEntity;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -16,6 +17,7 @@ import java.util.UUID;
  * @Date By 2021-03-23 20:38:42
  */
 @RestController
+@RequestMapping("/order")
 public class CreateOrderController {
     @Resource
     private RabbitTemplate rabbitTemplate;

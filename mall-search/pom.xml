@@ -24,6 +24,12 @@
             <groupId>com.zmm</groupId>
             <artifactId>mall-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.session</groupId>
+                    <artifactId>spring-session-data-redis</artifactId>
+                </exclusion>
+            </exclusions>
             <!-- 使用 启动类的 exclude 来排除-->
             <!--<exclusions>
                 <exclusion>

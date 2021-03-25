@@ -1,5 +1,6 @@
 package com.zmm.mall.order.interceptor;
 
+import com.alibaba.fastjson.JSON;
 import com.zmm.common.constant.AuthConstant;
 import com.zmm.common.constant.StringConstant;
 import com.zmm.common.utils.redis.RedisUtil;
@@ -65,7 +66,7 @@ public class LoginUserInterceptor implements HandlerInterceptor {
             logger.error("AUTH-GET-USER null: {}", key);
             return false;
         }
-        MemberRespVo memberRespVo = (MemberRespVo) object;
+        MemberRespVo memberRespVo = JSON.parseObject(object.toString(),MemberRespVo.class);
         loginUser.set(memberRespVo);
         return true;
         /**
