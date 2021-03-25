@@ -1,9 +1,12 @@
 package com.zmm.mall.member;
 
+import com.zmm.common.config.BaseConfigure;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.stereotype.Component;
+
 /**
  *
  * @author zhangmingming
@@ -27,4 +30,8 @@ public class MallMemberApplication {
 		SpringApplication.run(MallMemberApplication.class, args);
 	}
 
+
+	@Component
+	public class ServiceConfigure extends BaseConfigure {
+	}
 }

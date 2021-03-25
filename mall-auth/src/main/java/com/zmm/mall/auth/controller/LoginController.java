@@ -80,11 +80,11 @@ public class LoginController {
 			// 成功 将用户信息放入session
 			//MemberEntity memberEntity = result.getData("data",new TypeReference<MemberEntity>(){})
 			//session.setAttribute(StringConstant.LOGIN_USER,memberEntity)
-			// "redirect:http://mall.com";
+			// "redirect:http://mall.com"
 		} else {
 			// 失败
 			Map<String,String> errors = new HashMap<>();
-			//errors.put("msg",result.getData("data",new TypeReference<MemberEntity>(){}));
+			//errors.put("msg",result.getData("data",new TypeReference<MemberEntity>(){}))
 			redirectAttributes.addFlashAttribute("errors",errors);
 			// "redirect:http://auth.mall.com/login.html";
 		}

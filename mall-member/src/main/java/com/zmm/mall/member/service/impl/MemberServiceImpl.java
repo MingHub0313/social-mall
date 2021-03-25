@@ -7,10 +7,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.constant.NumberConstant;
+import com.zmm.common.constant.RedisTimeOutConstant;
 import com.zmm.common.exception.BusinessException;
 import com.zmm.common.utils.HttpUtils;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
+import com.zmm.common.utils.redis.RedisUtil;
+import com.zmm.common.utils.redis.key.CommonKey;
+import com.zmm.common.vo.MemberRespVo;
 import com.zmm.mall.member.dao.MemberDao;
 import com.zmm.mall.member.dao.MemberLevelDao;
 import com.zmm.mall.member.entity.MemberEntity;
@@ -22,6 +26,7 @@ import com.zmm.mall.member.vo.SocialUser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -29,6 +34,8 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 会员
@@ -43,6 +50,9 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
     
     @Resource
     private MemberLevelDao memberLevelDao;
+    
+    @Resource
+    private RedisUtil redisUtil;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -102,6 +112,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
             if (matches){
                 // 2.1 匹配成功 登录成功
                 log.error("登录成功,账号:{}",vo.getLoginAccount());
+                generateToken(memberEntity);
                 return memberEntity;
             } else {
                 log.error("密码匹配失败,账号:{}",vo.getLoginAccount());
@@ -109,6 +120,28 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
                 return null;
             }
         }
+    }
+    
+    
+    /**
+     * 将用户的认证信息写入缓存
+     * @author: 900045
+     * @date: 2021-03-25 09:26:45
+     * @throws 
+     * @param memberEntity: 
+     * @return: void
+     **/
+    private void generateToken(MemberEntity memberEntity){
+        long currentTimeMillis = System.currentTimeMillis();
+        String tokenVal = UUID.randomUUID().toString();
+        long tokenExpires = currentTimeMillis + RedisTimeOutConstant.S_86400 * 10 * 1000;
+        redisUtil.set(CommonKey.AUTH_TOKEN_USER_PREFIX.setSuffix(tokenVal), memberEntity.getId(),
+                tokenExpires, TimeUnit.MILLISECONDS);
+        MemberRespVo memberRespVo = new MemberRespVo();
+        BeanUtils.copyProperties(memberEntity,memberRespVo);
+        memberRespVo.setAccessToken(tokenVal);
+        redisUtil.hash(CommonKey.AUTH_USER_KEY, memberEntity.getId(), memberRespVo);
+        
     }
 
     @Override

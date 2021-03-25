@@ -1,12 +1,19 @@
 package com.zmm.mall.order.interceptor;
 
+import com.zmm.common.constant.AuthConstant;
 import com.zmm.common.constant.StringConstant;
+import com.zmm.common.utils.redis.RedisUtil;
+import com.zmm.common.utils.redis.key.CommonKey;
 import com.zmm.common.vo.MemberRespVo;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -19,6 +26,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Component
 public class LoginUserInterceptor implements HandlerInterceptor {
+
+    protected Logger logger   = LoggerFactory.getLogger(this.getClass());
+    
+    @Resource
+    private RedisUtil redisUtil;
+    
     public static ThreadLocal<MemberRespVo> loginUser = new ThreadLocal<>();
 
     /**
@@ -39,7 +52,23 @@ public class LoginUserInterceptor implements HandlerInterceptor {
         if (match) {
             return true;
         }
-        
+        String token = request.getHeader(AuthConstant.HEADER_TOKEN_KEY);
+
+        // 2.从 redis 中获取
+        Object key = getUserFromRedis(token);
+        if (key == null){
+            return false;
+        }
+        // 3.获取当前用户
+        Object object = redisUtil.hash(CommonKey.AUTH_USER_KEY, key.toString());
+        if (object == null) {
+            logger.error("AUTH-GET-USER null: {}", key);
+            return false;
+        }
+        MemberRespVo memberRespVo = (MemberRespVo) object;
+        loginUser.set(memberRespVo);
+        return true;
+        /**
         Object attribute = request.getSession().getAttribute(StringConstant.LOGIN_USER);
         if (ObjectUtils.isEmpty(attribute)){
             // 没有登陆就去登陆 重定向到登陆页面
@@ -51,6 +80,20 @@ public class LoginUserInterceptor implements HandlerInterceptor {
             MemberRespVo memberRespVo = (MemberRespVo) attribute;
             loginUser.set(memberRespVo);
             return true;
+        }*/
+    }
+
+    public Object getUserFromRedis(String token){
+
+        // 判断参数是否为空
+        if (StringUtils.isEmpty(token)) {
+            return null;
         }
+        // 从redis中获取 此token对应用的用户 然后保存在当前线程中
+        Object key = redisUtil.get(CommonKey.AUTH_TOKEN_USER_PREFIX.setSuffix(token));
+        if (key == null) {
+            return null;
+        }
+        return key;
     }
 }
