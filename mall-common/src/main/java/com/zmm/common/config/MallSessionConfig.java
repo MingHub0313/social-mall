@@ -18,6 +18,14 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @Configuration
 public class MallSessionConfig {
 
+	/**
+	 * 1.spring-session-依赖
+	 * 2.spring-session 配置
+	 * 3.引入 LoginInterceptor WebMvcConfigure
+	 * 4.开始@EnableRedisHttpSession
+	 * @return
+	 */
+
 	@Bean
 	public CookieSerializer cookieSerializer() {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();

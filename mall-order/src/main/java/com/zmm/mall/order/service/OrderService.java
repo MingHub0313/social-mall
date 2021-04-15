@@ -5,6 +5,8 @@ import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.order.entity.OrderEntity;
 import com.zmm.mall.order.vo.OrderConfirmVo;
 import com.zmm.mall.order.vo.OrderSubmitVo;
+import com.zmm.mall.order.vo.PayAsyncVo;
+import com.zmm.mall.order.vo.PayVo;
 import com.zmm.mall.order.vo.SubmitOrderResponseVo;
 
 import java.util.Map;
@@ -59,5 +61,35 @@ public interface OrderService extends IService<OrderEntity> {
 	 * @return: void
 	 **/
 	void closeOrder(OrderEntity orderEntity);
+
+	/**
+	 * 获取当前订单的支付信息
+	 * @author: 900045
+	 * @date: 2021-04-15 15:37:02
+	 * @throws 
+	 * @param orderSn: 
+	 * @return: com.zmm.mall.order.vo.PayVo
+	 **/
+	PayVo getOrderPay(String orderSn);
+
+	/**
+	 * 查询订单携带详情
+	 * @author: 900045
+	 * @date: 2021-04-15 16:13:42
+	 * @throws 
+	 * @param params: 
+	 * @return: com.zmm.common.utils.PageUtils
+	 **/
+	PageUtils queryPageWithItem(Map<String, Object> params);
+
+	/**
+	 * 处理支付宝的异步回调 支付结果
+	 * @author: 900045
+	 * @date: 2021-04-15 17:08:00
+	 * @throws 
+	 * @param vo: 
+	 * @return: java.lang.String
+	 **/
+	String handlePayResult(PayAsyncVo vo);
 }
 

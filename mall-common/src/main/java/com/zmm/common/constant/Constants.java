@@ -53,4 +53,6 @@ public class Constants {
 	 * 参与签名的系统Header前缀,只有指定前缀的Header才会参与到签名中
 	 */
 	public static final String CA_HEADER_TO_SIGN_PREFIX_SYSTEM = "X-Ca-";
+
+	public static final String LOG_PREFIX       = "PAY-ALI_PAY-NOTIFY";
 }

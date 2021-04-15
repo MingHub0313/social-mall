@@ -18,6 +18,7 @@ import com.zmm.common.vo.MemberRespVo;
 import com.zmm.mall.order.dao.OrderDao;
 import com.zmm.mall.order.entity.OrderEntity;
 import com.zmm.mall.order.entity.OrderItemEntity;
+import com.zmm.mall.order.entity.PaymentInfoEntity;
 import com.zmm.mall.order.feign.CartFeignService;
 import com.zmm.mall.order.feign.MemberFeignService;
 import com.zmm.mall.order.feign.ProductFeignService;
@@ -25,6 +26,7 @@ import com.zmm.mall.order.feign.WareFeignService;
 import com.zmm.mall.order.interceptor.LoginUserInterceptor;
 import com.zmm.mall.order.service.OrderItemService;
 import com.zmm.mall.order.service.OrderService;
+import com.zmm.mall.order.service.PaymentInfoService;
 import com.zmm.mall.order.to.OrderCreatTo;
 import com.zmm.mall.order.vo.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -41,6 +43,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import javax.annotation.Resource;
 import javax.xml.crypto.Data;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -78,6 +81,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Resource
     private ProductFeignService productFeignService;
+    
+    @Resource
+    private PaymentInfoService paymentInfoService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -152,7 +158,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * @return: com.zmm.mall.order.vo.SubmitOrderResponseVo
      **/
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(rollbackFor = Exception.class,propagation = Propagation.MANDATORY)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
         submitVoThreadLocal.set(orderSubmitVo);
@@ -166,24 +172,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         String orderToken = orderSubmitVo.getOrderToken();
         RedisKey redisKey = orderKey.setSuffix(memberRespVo.getId());
 
-        /*if (ObjectUtils.isEmpty(o)){
-            // 缓存中不存在
-            return null
-        } else {
-            String redisToken = (String)o
-            if (orderToken.equals(redisToken)){
-
-            }
-        }
-
-        if (!ObjectUtils.isEmpty(o) && orderToken.equals(o)){
-            // 还是防不住
-            //令牌验证通过
-        } else {
-            // 缓存中不存在
-            return null
-        }
-         */
+        // 一般的处理操作
+        //generallyHandle()
 
         // Lua 脚本 返回 0 或者 1  0: 令牌验证失败 1: 删除成功(都能删除删除比存在)
         String script = "if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end";
@@ -248,6 +238,30 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             //response.setCode(3)
         }
         return response;
+    }
+
+    /**
+     * 一般处理的方法
+     */
+    private void generallyHandle(){
+        /*if (ObjectUtils.isEmpty(o)){
+            // 缓存中不存在
+            return null
+        } else {
+            String redisToken = (String)o
+            if (orderToken.equals(redisToken)){
+
+            }
+        }
+
+        if (!ObjectUtils.isEmpty(o) && orderToken.equals(o)){
+            // 还是防不住
+            //令牌验证通过
+        } else {
+            // 缓存中不存在
+            return null
+        }
+         */
     }
 
     @Override
@@ -331,6 +345,53 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderItemService.saveBatch(orderItemEntities);
     }
 
+    @Override
+    public PayVo getOrderPay(String orderSn) {
+        OrderEntity orderByOrderSn = this.getOrderByOrderSn(orderSn);
+        OrderItemEntity itemEntity = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn)).get(0);
+        PayVo payVo = new PayVo();
+        payVo.setBody(itemEntity.getSkuAttrsVals());
+        payVo.setSubject(itemEntity.getSkuName());
+        payVo.setOut_trade_no(orderByOrderSn.getOrderSn());
+        payVo.setTotal_amount(orderByOrderSn.getPayAmount().setScale(2, RoundingMode.UP).toString());
+        return payVo;
+    }
+
+    @Override
+    public PageUtils queryPageWithItem(Map<String, Object> params) {
+        MemberRespVo memberRespVo = LoginUserInterceptor.loginUser.get();
+        IPage<OrderEntity> page = this.page(
+                new Query<OrderEntity>().getPage(params),
+                new QueryWrapper<OrderEntity>().eq("member_id",memberRespVo.getId()).orderByDesc("id")
+        );
+        List<OrderEntity> order_sn = page.getRecords().stream().map(orderEntity -> {
+            List<OrderItemEntity> orderItemEntityList = orderItemService.list(
+                    new QueryWrapper<OrderItemEntity>().eq("order_sn", orderEntity.getOrderSn()));
+            orderEntity.setItemEntityList(orderItemEntityList);
+            return orderEntity;
+        }).collect(Collectors.toList());
+        page.setRecords(order_sn);
+        return new PageUtils(page);
+    }
+
+    @Override
+    public String handlePayResult(PayAsyncVo vo) {
+        
+        // 1.保存交易流水
+        PaymentInfoEntity paymentInfoEntity = new PaymentInfoEntity();
+        paymentInfoEntity.setAlipayTradeNo(vo.getTrade_no());
+        paymentInfoEntity.setOrderSn(vo.getOut_trade_no());
+        paymentInfoEntity.setPaymentStatus(vo.getTrade_status());
+        paymentInfoEntity.setCallbackTime(vo.getNotify_time());
+        paymentInfoService.save(paymentInfoEntity);
+        // 2.修改订单状态
+        if (vo.getTrade_status().equals("TRADE_SUCCESS") || vo.getTrade_status().equals("TRADE_FINISHED")){
+            // 支付成功状态
+            String orderSn = vo.getOut_trade_no();
+            this.baseMapper.updateOrderPayFinishedStatus(orderSn,OrderStatusEnum.PAYED.getCode());
+        }
+        return "success";
+    }
 
     /**
      * 创建订单
@@ -370,7 +431,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         /**
         BigDecimal bigDecimal =  orderItemEntities.stream().reduce(BigDecimal.ZERO,(x,y)->{
-            return x.add(y.getSkuPrice().multiply(new BigDecimal(y.getSkuQuantity().toString())));
+            return x.add(y.getSkuPrice().multiply(new BigDecimal(y.getSkuQuantity().toString())))
         },BigDecimal::add)
         */
 
@@ -511,8 +572,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 5.积分信息 √
         orderItemEntity.setGiftGrowth(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount().toString())).intValue());
         orderItemEntity.setGiftIntegration(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount().toString())).intValue());
-        //orderItemEntity.setGiftGrowth(cartItem.getPrice().intValue());
-        //orderItemEntity.setGiftIntegration(cartItem.getPrice().intValue());
+        //orderItemEntity.setGiftGrowth(cartItem.getPrice().intValue())
+        //orderItemEntity.setGiftIntegration(cartItem.getPrice().intValue())
 
         // 6.订单项的价格
         orderItemEntity.setIntegrationAmount(new BigDecimal("0.0"));

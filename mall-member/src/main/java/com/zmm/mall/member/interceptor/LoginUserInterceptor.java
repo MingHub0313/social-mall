@@ -1,8 +1,7 @@
-package com.zmm.mall.order.interceptor;
+package com.zmm.mall.member.interceptor;
 
 import com.alibaba.fastjson.JSON;
 import com.zmm.common.constant.AuthConstant;
-import com.zmm.common.constant.StringConstant;
 import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CommonKey;
 import com.zmm.common.vo.MemberRespVo;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.annotation.Resource;
@@ -49,10 +47,8 @@ public class LoginUserInterceptor implements HandlerInterceptor {
         
         // 指定路径放行
         String requestURI = request.getRequestURI();
-        AntPathMatcher antPathMatcher = new AntPathMatcher();
-        boolean match = antPathMatcher.match("/order/order/status/**", requestURI);
-        boolean match2 = antPathMatcher.match("/pay/notify",requestURI);
-        if (match || match2) {
+        boolean match = new AntPathMatcher().match("/member/**", requestURI);
+        if (match) {
             return true;
         }
         String token = request.getHeader(AuthConstant.HEADER_TOKEN_KEY);

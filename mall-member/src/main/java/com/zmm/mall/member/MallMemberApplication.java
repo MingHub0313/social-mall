@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
  * @email 1805783671@qq.com
  * @date 2020-08-21 11:38:56
  */
+@EnableRedisHttpSession
 @EnableFeignClients(basePackages = "com.zmm.mall.member.feign")
 @SpringBootApplication
 @EnableDiscoveryClient
