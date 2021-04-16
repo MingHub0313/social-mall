@@ -11,6 +11,7 @@ import com.zmm.common.utils.Query;
 import com.zmm.mall.coupon.dao.SecKillSkuRelationDao;
 import com.zmm.mall.coupon.entity.SecKillSkuRelationEntity;
 import com.zmm.mall.coupon.service.SeckillSkuRelationService;
+import org.springframework.util.ObjectUtils;
 
 /**
  * 秒杀活动商品关联
@@ -24,9 +25,15 @@ public class SeckillSkuRelationServiceImpl extends ServiceImpl<SecKillSkuRelatio
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
+        QueryWrapper<SecKillSkuRelationEntity> queryWrapper = new QueryWrapper<>();
+        Object promotionSessionId = params.get("promotionSessionId");
+        if (!ObjectUtils.isEmpty(promotionSessionId)){
+            queryWrapper.eq("promotion_session_id",promotionSessionId.toString());
+        }
+        
         IPage<SecKillSkuRelationEntity> page = this.page(
                 new Query<SecKillSkuRelationEntity>().getPage(params),
-                new QueryWrapper<SecKillSkuRelationEntity>()
+                queryWrapper
         );
 
         return new PageUtils(page);

@@ -32,6 +32,7 @@
         <module>mall-order</module>
         <module>mall-product</module>
         <module>mall-search</module>
+        <module>mall-seckill</module>
         <module>mall-third-party</module>
         <module>mall-ware</module>
         <module>renren-fast</module>
