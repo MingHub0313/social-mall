@@ -275,7 +275,7 @@
 					<fromFile>target/${pack-name}</fromFile>
 					<url><![CDATA[scp://${remote-username}:${remote-passwd}@${remote-addr}${service-path}]]></url>
 					<commands>
-						<!-- Kill Old Process -->
+						<!-- KillKey Old Process -->
 						<command>kill -9 `ps -ef |grep ${project.artifactId}.jar|grep -v "grep" |awk '{print $2}'`</command>
 						<!-- Restart jar package，write result into renren.log -->
 						<command><![CDATA[nohup java -jar ${service-path}/${pack-name} --spring.profiles.active=test > ${service-path}/renren.log 2>&1 & ]]></command>

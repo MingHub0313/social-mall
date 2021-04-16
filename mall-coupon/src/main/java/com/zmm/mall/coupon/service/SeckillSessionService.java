@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.coupon.entity.SecKillSessionEntity;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,5 +22,16 @@ public interface SeckillSessionService extends IService<SecKillSessionEntity> {
      * @return
      */
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 最近三天参与秒杀的商品
+     * @author: 900045
+     * @date: 2021-04-16 16:01:40
+     * @throws 
+    
+     * @return: java.util.List<com.zmm.mall.coupon.entity.SecKillSessionEntity>
+     **/
+	List<SecKillSessionEntity> getLatest3DaySession();
+	
 }
 

@@ -1,9 +1,11 @@
 package com.zmm.mall.coupon.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +31,12 @@ import com.zmm.common.utils.R;
 public class SecKillSessionController {
     @Autowired
     private SeckillSessionService seckillSessionService;
+    
+    @GetMapping("/latest3DaySession")
+    public R getLatest3DaySession(){
+        List<SecKillSessionEntity> sessions= seckillSessionService.getLatest3DaySession();
+        return R.ok().setData(sessions);
+    }
 
     /**
      * 列表

@@ -40,15 +40,15 @@ public class SecKillSkuRelationEntity implements Serializable {
 	/**
 	 * $column.comments
 	 */
-	private BigDecimal secKillPrice;
+	private Integer secKillPrice;
 	/**
 	 * $column.comments
 	 */
-	private BigDecimal secKillCount;
+	private Integer secKillCount;
 	/**
 	 * $column.comments
 	 */
-	private BigDecimal secKillLimit;
+	private Integer secKillLimit;
 	/**
 	 * $column.comments
 	 */

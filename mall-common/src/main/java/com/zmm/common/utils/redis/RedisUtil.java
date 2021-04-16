@@ -7,6 +7,7 @@ import com.zmm.common.exception.CustomRunTimeException;
 import com.zmm.common.utils.Assert;
 import com.zmm.common.utils.redis.key.RedisKey;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -41,6 +42,7 @@ public final class RedisUtil<T> {
 	private HashOperations<String, String, T> hashTemplate;
 	private SetOperations<String, T> setTemplate;
 	private ZSetOperations<String, T> zSetTemplate;
+	private ListOperations<String, T> listTemplate;
 
 	/**
 	 * 通过构造方法 创建Bean 将 redisTemplate 作为参数传递
@@ -54,6 +56,7 @@ public final class RedisUtil<T> {
 		this.hashTemplate = this.redisTemplate.opsForHash();
 		this.setTemplate = redisTemplate.opsForSet();
 		this.zSetTemplate = redisTemplate.opsForZSet();
+		this.listTemplate = redisTemplate.opsForList();
 
 	}
 
@@ -130,6 +133,10 @@ public final class RedisUtil<T> {
 		return redisTemplate.delete(key.getKey());
 	}
 
+	
+	public void leftPushAll(RedisKey key,List<T> object){
+		listTemplate.leftPushAll(key.getKey(),object);
+	}
 
 	// ========================设置自增 START =================================
 
