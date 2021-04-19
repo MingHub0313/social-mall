@@ -1,19 +1,23 @@
 package com.zmm.mall.product.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.common.utils.Query;
+import com.zmm.common.utils.R;
 import com.zmm.mall.product.dao.SkuInfoDao;
 import com.zmm.mall.product.entity.SkuImagesEntity;
 import com.zmm.mall.product.entity.SkuInfoEntity;
 import com.zmm.mall.product.entity.SpuInfoDescEntity;
+import com.zmm.mall.product.feign.SeckillFeignService;
 import com.zmm.mall.product.service.AttrGroupService;
 import com.zmm.mall.product.service.SkuImagesService;
 import com.zmm.mall.product.service.SkuInfoService;
 import com.zmm.mall.product.service.SkuSaleAttrValueService;
 import com.zmm.mall.product.service.SpuInfoDescService;
+import com.zmm.mall.product.vo.SeckillInfoVo;
 import com.zmm.mall.product.vo.SkuItemSaleAttrVo;
 import com.zmm.mall.product.vo.SkuItemVo;
 import com.zmm.mall.product.vo.SpuItemAttrGroupVo;
@@ -22,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +56,9 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     
     @Autowired
     private SkuSaleAttrValueService skuSaleAttrValueService;
+    
+    @Resource
+    private SeckillFeignService seckillFeignService;
     
     @Autowired
     private ThreadPoolExecutor executor;
@@ -128,9 +136,21 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         CompletableFuture<Void> completableFutureImg = CompletableFuture.runAsync(() -> {
              getSkuImagesEntities(skuId,skuItemVo);
         }, executor);
-
+        
+        
+        // 6.查询当前sku是否参与秒杀活动
+        CompletableFuture<Void> completableFutureSeckill = CompletableFuture.runAsync(() -> { 
+            R r = seckillFeignService.getSkuSeckillInfo(skuId);
+            if ( r.getCode() == 0){ 
+                SeckillInfoVo data = r.getData(new TypeReference<SeckillInfoVo>() {
+                });
+                skuItemVo.setSeckillInfoVo(data); 
+            }
+        }, executor);
+       
+        
         // 等待所有任务都完成
-        CompletableFuture.allOf(attrFuture, descFuture, groupAttrFuture, completableFutureImg).get();
+        CompletableFuture.allOf(attrFuture, descFuture, groupAttrFuture, completableFutureImg,completableFutureSeckill).get();
         
         return skuItemVo; 
     }

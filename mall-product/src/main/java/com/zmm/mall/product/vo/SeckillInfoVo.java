@@ -1,6 +1,5 @@
-package com.zmm.mall.seckill.to;
+package com.zmm.mall.product.vo;
 
-import com.zmm.mall.seckill.vo.SkuInfoVo;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,11 +7,11 @@ import java.math.BigDecimal;
 /**
  * @author 900045
  * @description:
- * @name SeckillSkuRedisTo
- * @date By 2021-04-16 16:48:57
+ * @name SeckillInfoVo
+ * @date By 2021-04-19 16:15:05
  */
 @Data
-public class SeckillSkuRedisTo {
+public class SeckillInfoVo {
 
 	private Long id;
 	/**
@@ -43,10 +42,6 @@ public class SeckillSkuRedisTo {
 	 * $column.comments
 	 */
 	private Integer secKillSort;
-	
-	//sku 详情信息
-	
-	private SkuInfoVo skuInfoVo;
 
 	/**
 	 * 当前商品秒杀的开始时间

@@ -183,4 +183,22 @@ public class MyRabbitMqConfig {
                 "order.release.other.#",
                 null);
     }
+    
+    // ===========秒杀监听队列
+    
+    @Bean
+    public Queue orderSeckillOrderQueue(){
+        Queue queue = new Queue("order.seckill.order.queue", true, false, false);
+        return queue;
+    }
+
+
+    @Bean
+    public Binding orderSeckillOrderQueueBinding(){
+        return new Binding("order.seckill.order.queue",
+                Binding.DestinationType.QUEUE,
+                "order-event-exchange",
+                "order.seckill.order",
+                null);
+    }
 }

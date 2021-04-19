@@ -1,6 +1,7 @@
 package com.zmm.mall.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zmm.common.to.mq.SeckillOrderTo;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.order.entity.OrderEntity;
 import com.zmm.mall.order.vo.OrderConfirmVo;
@@ -91,5 +92,15 @@ public interface OrderService extends IService<OrderEntity> {
 	 * @return: java.lang.String
 	 **/
 	String handlePayResult(PayAsyncVo vo);
+
+	/**
+	 * 创建秒杀订单
+	 * @author: 900045
+	 * @date: 2021-04-19 17:51:24
+	 * @throws 
+	 * @param seckillOrderTo: 
+	 * @return: void
+	 **/
+	void createSeckillOrder(SeckillOrderTo seckillOrderTo);
 }
 

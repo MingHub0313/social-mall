@@ -49,7 +49,7 @@ public class SeckillSkuScheduled {
 		lock.lock(10, TimeUnit.SECONDS);
 		try {
 			log.error("上架秒杀的商品信息....");
-			// 上架过的商品 下次定时任务就无需执行了  ===> 幂等性问题
+			// 上架过的商品 下次定时任务就无需执行了  ===> 幂等性问题 ===> 加锁
 			// 1.重复上架 无需处理
 			seckillService.uploadSeckillSkuLatest3Days();
 		} finally {
