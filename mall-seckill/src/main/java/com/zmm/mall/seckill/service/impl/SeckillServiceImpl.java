@@ -3,10 +3,8 @@ package com.zmm.mall.seckill.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.zmm.common.constant.NumberConstant;
 import com.zmm.common.to.mq.SeckillOrderTo;
 import com.zmm.common.utils.R;
-import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.KillKey;
 import com.zmm.common.utils.redis.key.RedisKey;
@@ -16,7 +14,6 @@ import com.zmm.mall.seckill.feign.ProductFeignService;
 import com.zmm.mall.seckill.interceptor.LoginUserInterceptor;
 import com.zmm.mall.seckill.service.SeckillService;
 import com.zmm.mall.seckill.to.SeckillSkuRedisTo;
-import com.zmm.mall.seckill.vo.SecKillSkuVo;
 import com.zmm.mall.seckill.vo.SeckillSessionWithSku;
 import com.zmm.mall.seckill.vo.SkuInfoVo;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +62,11 @@ public class SeckillServiceImpl implements SeckillService {
 	public void uploadSeckillSkuLatest3Days() {
 		// 1.扫描最近三天需要参与秒杀的活动
 		R latest3DaySession = couponFeignService.getLatest3DaySession();
+		/**
+		 * 改进
+		 * 		1.上架秒杀商品 每个数据都有过期时间
+		 * 		2.秒杀后续的流程,简化收货地址信息	
+		 */
 		if (latest3DaySession.getCode() == 0) {
 			List<SeckillSessionWithSku> dataList = latest3DaySession.getData(new TypeReference<List<SeckillSessionWithSku>>() {
 			});

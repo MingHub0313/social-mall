@@ -10,11 +10,12 @@ package com.zmm.common.utils.redis.key;
 public enum KillKey implements RedisKey{
 	
 	/** 秒杀活动信息*/
-	KILL("seckill:sessions"),
+	KILL("seckill:sessions:"),
 	/** 秒杀活动对应的 商品信息*/
 	SECKILL_SKU_LIST("seckill:sku:list"),
 	/** 秒杀库存 + 商品随机码*/
 	SECKILL_STOCK("seckill:stock:"),
+	USER_BUY("USER:BUY"),
 	
 	
 	;
