@@ -1,10 +1,11 @@
 package com.zmm.mall.order.config;
 
-import com.rabbitmq.client.Channel;
-import com.zmm.mall.order.entity.OrderEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -14,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +35,19 @@ public class MyRabbitMqConfig {
     public MessageConverter messageConverter(){
         return new Jackson2JsonMessageConverter();
     }
+    
+
+    /**
+    @Primary
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory){
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        this.rabbitTemplate = rabbitTemplate;
+        rabbitTemplate.setMessageConverter(messageConverter());
+        initRabbitTemplate();
+        return rabbitTemplate;
+    }
+    */
 
     /**
      * 定制 : RabbitTemplate

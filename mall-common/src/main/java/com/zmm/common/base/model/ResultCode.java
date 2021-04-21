@@ -39,6 +39,7 @@ public enum ResultCode implements RespCode {
 	FIELD(100002, "操作失败!"),
 	SMS_CODE_EXCEPTION(100003, "短信验证码发送太快,稍后再试"),
 	METHOD_CALL_PARAMETER_ERROR(100004, "请求参数有误 请按照规则填写"),
+	TO_MANY_REQUEST(100005,"流量请求过大"),
 
 	EXCEPTION(150000,"存在异常"),
 	USERNAME_NOT_UNIQUE(150001,"用户名不唯一"),

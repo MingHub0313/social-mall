@@ -71,10 +71,12 @@ public class SeckillServiceImpl implements SeckillService {
 			List<SeckillSessionWithSku> dataList = latest3DaySession.getData(new TypeReference<List<SeckillSessionWithSku>>() {
 			});
 			// 将查询到的数据 缓存到 redis 中
-			// 1.缓存活动信息
-			saveSessionInfos(dataList);
-			// 2.缓存活动关联的商品信息
-			saveSessionSkuInfos(dataList);
+			if (!CollectionUtils.isEmpty(dataList)) {
+				// 1.缓存活动信息
+				saveSessionInfos(dataList);
+				// 2.缓存活动关联的商品信息
+				saveSessionSkuInfos(dataList);
+			}
 		}
 	}
 
