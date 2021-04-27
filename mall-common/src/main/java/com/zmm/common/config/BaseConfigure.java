@@ -1,12 +1,12 @@
 package com.zmm.common.config;
 
-import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.zmm.common.utils.redis.RedisUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -26,7 +26,7 @@ public class BaseConfigure {
                     "un_support redis connection factory! " + redisConnectionFactory);
         }
          */
-        JedisConnectionFactory jedisConnectionFactory = (JedisConnectionFactory) redisConnectionFactory;
+        LettuceConnectionFactory lettuceConnectionFactory = (LettuceConnectionFactory) redisConnectionFactory;
         //  2.0.0配置方式，  2.1.7 之后无效了
         // lettuceConnectionFactory.setDatabase(database)
         // redisTemplate.setConnectionFactory(lettuceConnectionFactory)
@@ -36,22 +36,22 @@ public class BaseConfigure {
 
         //2.1.7之后要完全替换
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(
-                jedisConnectionFactory.getHostName(), jedisConnectionFactory.getPort());
+                lettuceConnectionFactory.getHostName(), lettuceConnectionFactory.getPort());
         redisStandaloneConfiguration.setDatabase(7);
-        redisStandaloneConfiguration.setPassword(jedisConnectionFactory.getPassword());
-        JedisConnectionFactory connectionFactory = new JedisConnectionFactory(
-                redisStandaloneConfiguration, jedisConnectionFactory.getClientConfiguration());
+        redisStandaloneConfiguration.setPassword(lettuceConnectionFactory.getPassword());
+        LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
+                redisStandaloneConfiguration, lettuceConnectionFactory.getClientConfiguration());
         //这句一定不能少
         connectionFactory.afterPropertiesSet();
 
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer<>(Object.class);
+        //FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer<>(Object.class)
         //  使用JSON格式的序列化,保存
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         // 值 不乱码
-        redisTemplate.setValueSerializer(fastJsonRedisSerializer);
-        redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setConnectionFactory(connectionFactory);
         return redisTemplate;
 

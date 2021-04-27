@@ -69,19 +69,22 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <!-- spring-cloud-starter-gateway 与 tomcat 一起使用
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
                 </exclusion>
             </exclusions>
+            -->
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
-        
+        -->
         <!-- 服务的注册发现-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -132,10 +135,12 @@
         </dependency>
         -->
         <!-- zipkin 中包含 sleuth-->
+        <!-- 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-zipkin</artifactId>
         </dependency>
+        -->
         <!--整合 SpringSession-->
         <dependency>
             <groupId>org.springframework.session</groupId>
@@ -154,7 +159,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>io.lettuce</groupId>
+                    <groupId>io.netty</groupId>
                     <artifactId>lettuce-core</artifactId>
                 </exclusion>
 
@@ -166,11 +171,12 @@
         </dependency>
 
         <!-- 内存泄漏的问题-->
+        <!--
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
         </dependency>
-
+        -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

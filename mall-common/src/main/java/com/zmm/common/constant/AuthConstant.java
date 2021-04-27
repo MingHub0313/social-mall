@@ -16,4 +16,7 @@ public class AuthConstant {
 	/** 请求头中 token key */
 	public static final String HEADER_TOKEN_KEY               = "Authorization";
 	
+	/** 请求头中 cookie */
+	public static final String HEADER_COOKIE_KEY= "Cookie";
+	
 }

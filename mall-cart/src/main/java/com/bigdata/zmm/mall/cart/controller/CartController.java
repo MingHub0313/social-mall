@@ -5,7 +5,9 @@ import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.zmm.common.base.model.ReqResult;
 import com.zmm.common.base.model.ResultCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,7 +21,9 @@ import java.util.concurrent.ExecutionException;
  * @Author Administrator
  * @Date By 2021-02-28 23:07:21
  */
+@Slf4j
 @RestController
+@RequestMapping("/cart")
 public class CartController {
 
     @Resource
@@ -33,7 +37,7 @@ public class CartController {
      * @date: 2021-03-09 20:58:49
      * @return: java.util.List<com.bigdata.zmm.mall.cart.vo.CartItem>
      **/
-    @GetMapping("/find/cartItems/user'")
+    @GetMapping("/find/cartItems/user")
     public List<CartItem> getCartItemByUser(){
         List<CartItem> cartItems = cartService.getCartItemByUser();
         return cartItems;
@@ -59,6 +63,20 @@ public class CartController {
         // 目标方法
 
 
+        /**
+         * 情况1: 临时用户登录
+         *      Headers:
+         *      loginUser:67ab6c8f-77fa-4a2c-934b-7ffb9e71ae03 --- 临时用户的key
+         *  
+         *  情况2: 真实用户登录
+         *      Headers:
+         *      Authorization:17c9a28e-dc3b-4003-9a8e-d862486894fa  --- 真实用户登录
+         *      
+         *  情况3: 真实用户 并且之前是临时用户
+         *      Headers:
+         *      loginUser:67ab6c8f-77fa-4a2c-934b-7ffb9e71ae03 --- 临时用户的key
+         *      Authorization:17c9a28e-dc3b-4003-9a8e-d862486894fa  --- 真实用户登录
+         */
         Cart cart = cartService.getCart();
 
         return new ReqResult(cart);
@@ -72,9 +90,15 @@ public class CartController {
      * @param number: 
      * @return: com.zmm.common.base.model.ReqResult
      **/
+    @GetMapping("/addItem")
     public ReqResult addToCart(@RequestParam("skuId") Long skuId,
                                @RequestParam("number") Integer number) throws ExecutionException, InterruptedException {
 
+        /**
+         * 使用 postman
+         * 第一次请求 不携带任务 请求头的数据 ---> 此时会当作临时用户 uuid 存到 redis中
+         * 
+         */
         CartItem cartItem = cartService.addToCart(skuId,number);
 
         return new ReqResult(ResultCode.SUCCESS);

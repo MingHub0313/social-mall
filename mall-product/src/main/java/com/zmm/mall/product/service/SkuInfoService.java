@@ -53,5 +53,7 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
 	 * @return: com.zmm.mall.product.vo.SkuItemVo
 	 **/
 	SkuItemVo item(Long skuId);
+
+	String test(Long skuId);
 }
 

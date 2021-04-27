@@ -100,7 +100,13 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
 
         return skuItemVo;
     }
-    
+
+
+    @Override
+    public String test(Long skuId) {
+        return seckillFeignService.setOpenFeign(skuId);
+    }
+
     /**
      * 改造方法走 异步
      * @author: 900045
@@ -139,13 +145,16 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         
         
         // 6.查询当前sku是否参与秒杀活动
+
+        R r = seckillFeignService.getSkuSeckillInfo(skuId);
+        if ( r.getCode() == 0){
+            SeckillInfoVo data = r.getData(new TypeReference<SeckillInfoVo>() {
+            });
+            skuItemVo.setSeckillInfoVo(data);
+        }
+        
         CompletableFuture<Void> completableFutureSeckill = CompletableFuture.runAsync(() -> { 
-            R r = seckillFeignService.getSkuSeckillInfo(skuId);
-            if ( r.getCode() == 0){ 
-                SeckillInfoVo data = r.getData(new TypeReference<SeckillInfoVo>() {
-                });
-                skuItemVo.setSeckillInfoVo(data); 
-            }
+            
         }, executor);
        
         

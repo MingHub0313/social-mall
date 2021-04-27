@@ -18,6 +18,8 @@ public interface CartService {
      * 添加商品到 购物车
      * @author: Administrator
      * @date: 2021-03-03 22:05:28
+     * @throws ExecutionException
+     * @throws InterruptedException
      * @param skuId:
      * @param number:
      * @return: com.bigdata.zmm.mall.cart.vo.CartItem
@@ -27,6 +29,8 @@ public interface CartService {
     /**
      * 获取当前用户的购物车信息
      * @author: Administrator
+     * @throws ExecutionException
+     * @throws InterruptedException
      * @date: 2021-03-04 20:22:42
      * @return: com.bigdata.zmm.mall.cart.vo.Cart
      **/

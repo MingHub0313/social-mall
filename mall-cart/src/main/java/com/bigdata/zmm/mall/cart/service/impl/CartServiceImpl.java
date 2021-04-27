@@ -59,7 +59,7 @@ public class CartServiceImpl implements CartService {
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
 
         // advance.1 判断购物车中是否存在
-        String string = redisUtil.hashGet(getCartKey(userInfoTo), skuId);
+        String string = redisUtil.hashGet(getCartKey(userInfoTo), skuId.toString());
         /**
          * 1.判断购物车中是否存在
          *      存在: 则修改数量
@@ -103,9 +103,11 @@ public class CartServiceImpl implements CartService {
             String jsonString = JSON.toJSONString(cartItem);
             // 可能会出现问题 一定要等到 上面两个异步执行完成后
             // 操作 Redis 的方案 一.
-            cartOps.put(skuId.toString(), jsonString);
+            //cartOps.put(skuId.toString(), jsonString)
             // 操作 Redis 的方案 二.
-            redisUtil.hash(getCartKey(userInfoTo), skuId, cartItem);
+            CartKey cartKey = getCartKey(userInfoTo);
+            log.info("cartKey:[{}]",cartKey.getKey());
+            redisUtil.hash(cartKey, skuId, cartItem);
             return cartItem;
         }
     }
@@ -149,20 +151,24 @@ public class CartServiceImpl implements CartService {
         // 需要区分登陆还是未登陆
         CartKey cartKey = CartKey.MALL_CART;
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
-        if (ObjectUtils.isEmpty(userInfoTo)){
+        if (ObjectUtils.isEmpty(userInfoTo.getUserId())){
+            log.info("没有登录,获取临时的购物车数据");
             // 未登陆 临时用户
             // 获取可临购物车的所有项
             RedisKey tempCartKey = cartKey.setSuffix(userInfoTo.getUserKey());
+            log.info("①临时的购物车的 KEY:[{}]",tempCartKey.getKey());
             List cartItemList = redisUtil.hashValues(tempCartKey);
             List<CartItem> cartItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
             cart.setCartItems(cartItems);
         } else {
+            log.info("登录,获取登录的购物车数据");
             // 1.已登陆
             // 真正的用户购物车的 key
             RedisKey redisKey = cartKey.setSuffix(userInfoTo.getUserId());
-
+            log.info("登录的用户购物车的 KEY:[{}]",redisKey);
             // 2.如果临时购物车的数据还没有进行合并
             RedisKey tempCartKey = cartKey.setSuffix(userInfoTo.getUserKey());
+            log.info("②临时的购物车的 KEY:[{}]",tempCartKey.getKey());
             // 通过临时的key 获取临时购物车数据
             List tempCartItemList = redisUtil.hashValues(tempCartKey);
             if (!CollectionUtils.isEmpty(tempCartItemList)){
@@ -171,20 +177,22 @@ public class CartServiceImpl implements CartService {
                 for (CartItem tempCartItem : tempCartItems){
                     addToCart(tempCartItem.getSkuId(),tempCartItem.getCount());
                 }
+                log.info("③临时的购物车的 KEY:[{}]",tempCartKey.getKey());
                 // 合并临时数据后 要清空数据
-                clearCart(tempCartKey);
+                clearCart(cartKey.setSuffix(userInfoTo.getUserKey()));
             }
             // 3.获取登陆后的购物车的全部数据(包含合并过来的临时购物车数据和已经登陆后购物车中的数据)
-            List cartItemList = redisUtil.hashValues(cartKey);
+            List cartItemList = redisUtil.hashValues(cartKey.setSuffix(userInfoTo.getUserId()));
             List<CartItem> allCrtItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
             cart.setCartItems(allCrtItems);
         }
-        return null;
+        return cart;
     }
 
     @Override
     public void clearCart(RedisKey redisKey) {
-        redisUtil.hashDelete(redisKey);
+        log.info("④此时要删除的key是:[{}]",redisKey.getKey());
+        redisUtil.delete(redisKey);
     }
 
     @Override

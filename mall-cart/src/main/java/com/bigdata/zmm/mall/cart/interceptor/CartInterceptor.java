@@ -1,16 +1,21 @@
 package com.bigdata.zmm.mall.cart.interceptor;
 
 import com.bigdata.zmm.mall.cart.to.UserInfoTo;
+import com.zmm.common.constant.AuthConstant;
 import com.zmm.common.constant.CartConstant;
 import com.zmm.common.constant.RedisTimeOutConstant;
 import com.zmm.common.constant.StringConstant;
+import com.zmm.common.utils.StringUtil;
+import com.zmm.common.utils.redis.RedisUtil;
+import com.zmm.common.utils.redis.key.CommonKey;
 import com.zmm.common.vo.MemberRespVo;
-import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,10 +29,14 @@ import java.util.UUID;
  * @Author Administrator
  * @Date By 2021-02-28 23:18:40
  */
-@Component
+@Slf4j
+@Configuration
 public class CartInterceptor implements HandlerInterceptor {
 
     public static ThreadLocal<UserInfoTo> threadLocal = new ThreadLocal<>();
+    
+    @Resource
+    private RedisUtil redisUtil;
 
     /**
      * 在目标方法执行之前
@@ -43,26 +52,45 @@ public class CartInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         UserInfoTo userInfoTo = new UserInfoTo();
         HttpSession httpSession = request.getSession();
-        Object session = httpSession.getAttribute(StringConstant.LOGIN_USER);
+        String token = request.getHeader(AuthConstant.HEADER_TOKEN_KEY);
+        log.error("token:[{}]",token);
+        if (StringUtil.isNotBlank(token)) {
+            Object key = redisUtil.get(CommonKey.AUTH_TOKEN_USER_PREFIX.setSuffix(token));
+            Object object = redisUtil.hash(CommonKey.AUTH_USER_KEY, key.toString());
+            if (object == null || !(object instanceof MemberRespVo)) {
+                return false;
+            }
+            MemberRespVo memberRespVo = (MemberRespVo)object;
+            userInfoTo.setUserId(memberRespVo.getId());
+        }
+        String cookie = request.getHeader(StringConstant.LOGIN_USER);
+        if (StringUtil.isNotBlank(cookie)) {
+            //Object o = redisUtil.get(CartKey.MALL_CART.setSuffix(cookie))
+            userInfoTo.setUserKey(cookie);
+            userInfoTo.setTempUser(true);
+        }
+        /**
+        Object session = httpSession.getAttribute(StringConstant.LOGIN_USER)
         if (ObjectUtils.isEmpty(session)){
             // 没有登陆
 
         } else {
-            MemberRespVo memberRespVo = (MemberRespVo)session;
-            userInfoTo.setUserId(memberRespVo.getId());
+            MemberRespVo memberRespVo = (MemberRespVo)session
+            userInfoTo.setUserId(memberRespVo.getId())
         }
-        Cookie[] cookies = request.getCookies();
+        Cookie[] cookies = request.getCookies()
         if (!ObjectUtils.isEmpty(cookies)){
-            for (Cookie cookie:cookies){
+            for (Cookie c:cookies){
                 // user-key
-                String name = cookie.getName();
+                String name = c.getName()
                 if (name.equals(CartConstant.TEMP_USER_COOKIE_NAME)){
                     // 存在 临时用户
-                    userInfoTo.setUserKey(cookie.getValue());
-                    userInfoTo.setTempUser(true);
+                    userInfoTo.setUserKey(c.getValue())
+                    userInfoTo.setTempUser(true)
                 }
             }
         }
+         */
         // 如果没有临时用户 一定要分配一个临时用户
         if (StringUtils.isEmpty(userInfoTo.getUserKey())) {
             String uuid = UUID.randomUUID().toString();

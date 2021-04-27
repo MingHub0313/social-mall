@@ -1,5 +1,6 @@
 package com.zmm.mall.product.web;
 
+import com.zmm.common.utils.R;
 import com.zmm.mall.product.service.SkuInfoService;
 import com.zmm.mall.product.vo.SkuItemVo;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +30,18 @@ public class ItemController {
 	 * @param skuId: 
 	 * @return: java.lang.String
 	 **/
-	@GetMapping(value = "/{skuId}")
+	@GetMapping(value = "/product/{skuId}")
 	public SkuItemVo skuItem(@PathVariable("skuId") Long skuId){
 		log.info("准备查询:{}详情",skuId);
 		SkuItemVo skuItemVo = skuInfoService.item(skuId);
 		return skuItemVo;
 	}
+
+	@GetMapping(value = "/product/test/{skuId}")
+	public R testOpenFeign(@PathVariable("skuId") Long skuId){
+		log.info("准备查询:{}详情",skuId);
+		String test = skuInfoService.test(skuId);
+		return R.ok().setData(test);
+	}
+	
 }

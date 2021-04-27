@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.annotation.Resource;
+
 /**
  * @Description:
  * @Name MallWebConfig
@@ -14,9 +16,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class MallWebConfig implements WebMvcConfigurer {
 
+    @Resource
+    private CartInterceptor cartInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 拦截 什么请求 ** : 所有请求
-        registry.addInterceptor(new CartInterceptor()).addPathPatterns("/**");
+        registry.addInterceptor(cartInterceptor).addPathPatterns("/**");
     }
 }

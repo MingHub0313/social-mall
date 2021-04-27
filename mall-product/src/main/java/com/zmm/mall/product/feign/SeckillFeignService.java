@@ -22,6 +22,17 @@ public interface SeckillFeignService {
 	 * @param skuId: 
 	 * @return: com.zmm.common.utils.R
 	 **/
-	@GetMapping("/sku/seckill/{skuId}")
+	@GetMapping("/seckill/sku/seckill/{skuId}")
 	R getSkuSeckillInfo(@PathVariable("skuId") Long skuId);
+
+	/**
+	 * 远程调式 接口
+	 * @author: 900045
+	 * @date: 2021-04-27 14:54:59
+	 * @throws 
+	 * @param skuId: 
+	 * @return: java.util.Map
+	 **/
+	@GetMapping(value = "/seckill/feign/{skuId}")
+	String setOpenFeign(@PathVariable("skuId") Long skuId);
 }
