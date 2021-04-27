@@ -167,8 +167,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
 
     /**
-     * TODO 产生推外内存溢出 : OutOfDirectMemoryError 原因 : springboot 2.0 默认使用 lettuce作为操作redis 的 客户端 .其中网络 使用netty网络通信
-     *  lettuce 的 bug 导致的推外内存溢出  可以通过 -Dio.netty.maxDirectMemory 进行设置
+     * TODO 产生推外内存溢出 : OutOfDirectMemoryError .
+     * 
+     *  原因 : springboot 2.0 默认使用 lettuce作为操作redis 的 客户端 . 其中网络 使用netty网络通信
+     *  lettuce 的 bug 导致的推外内存溢出  -Xmx300m; netty如果没有指定堆位内存,默认使用 -Xmx300;
+     *  可以通过 -Dio.netty.maxDirectMemory 进行设置
      *  解决方案 : 不能使用上述参数来调大推外溢出
      *      1).升级lettuce客户端 (目前没有)
      *      2).切换使用 jedis

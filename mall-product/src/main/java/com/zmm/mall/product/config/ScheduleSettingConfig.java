@@ -2,7 +2,6 @@ package com.zmm.mall.product.config;
 
 import com.zmm.common.utils.schedule.ScheduleJobEntity;
 import com.zmm.mall.product.dao.ScheduleDao;
-import io.lettuce.core.dynamic.support.ReflectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -11,6 +10,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
@@ -55,7 +55,7 @@ public class ScheduleSettingConfig implements SchedulingConfigurer {
 				Class<?> clazz;
 				try {
 					clazz = Class.forName(scheduleConfig.getClassName());
-					String className = lowerFirstCapse(clazz.getSimpleName());
+					String className = lowerFirstCase(clazz.getSimpleName());
 					Object bean = (Object) ApplicationContextHelper.getBean(className);
 					Method method = ReflectionUtils.findMethod(bean.getClass(), scheduleConfig.getMethod());
 					ReflectionUtils.invokeMethod(method, bean);
@@ -72,7 +72,7 @@ public class ScheduleSettingConfig implements SchedulingConfigurer {
 	 * @param str
 	 * @return
 	 */
-	public static String lowerFirstCapse(String str) {
+	public static String lowerFirstCase(String str) {
 		char[] chars = str.toCharArray();
 		chars[0] += 32;
 		return String.valueOf(chars);

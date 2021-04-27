@@ -5,7 +5,7 @@ import com.zmm.common.utils.redis.RedisUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -19,11 +19,14 @@ public class BaseConfigure {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        
+        /**
         if (!(redisConnectionFactory instanceof LettuceConnectionFactory)) {
             throw new RuntimeException(
                     "un_support redis connection factory! " + redisConnectionFactory);
         }
-        LettuceConnectionFactory lettuceConnectionFactory = (LettuceConnectionFactory) redisConnectionFactory;
+         */
+        JedisConnectionFactory jedisConnectionFactory = (JedisConnectionFactory) redisConnectionFactory;
         //  2.0.0配置方式，  2.1.7 之后无效了
         // lettuceConnectionFactory.setDatabase(database)
         // redisTemplate.setConnectionFactory(lettuceConnectionFactory)
@@ -33,11 +36,11 @@ public class BaseConfigure {
 
         //2.1.7之后要完全替换
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(
-                lettuceConnectionFactory.getHostName(), lettuceConnectionFactory.getPort());
+                jedisConnectionFactory.getHostName(), jedisConnectionFactory.getPort());
         redisStandaloneConfiguration.setDatabase(7);
-        redisStandaloneConfiguration.setPassword(lettuceConnectionFactory.getPassword());
-        LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
-                redisStandaloneConfiguration, lettuceConnectionFactory.getClientConfiguration());
+        redisStandaloneConfiguration.setPassword(jedisConnectionFactory.getPassword());
+        JedisConnectionFactory connectionFactory = new JedisConnectionFactory(
+                redisStandaloneConfiguration, jedisConnectionFactory.getClientConfiguration());
         //这句一定不能少
         connectionFactory.afterPropertiesSet();
 
