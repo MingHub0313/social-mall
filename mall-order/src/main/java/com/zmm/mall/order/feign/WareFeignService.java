@@ -31,6 +31,14 @@ public interface WareFeignService {
     R getSkuHasStock(@RequestBody List<Long> skuIds);
 
 
+    /**
+     * 查询运费信息
+     * @author: 900045
+     * @date: 2021-04-28 17:07:57
+     * @throws 
+     * @param addrId: 
+     * @return: com.zmm.common.utils.R
+     **/
     @GetMapping("/ware/wareinfo/fare")
     R getFare(@RequestParam("addrId") Long addrId);
 

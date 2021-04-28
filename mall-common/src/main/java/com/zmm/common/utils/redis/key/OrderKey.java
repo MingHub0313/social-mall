@@ -9,7 +9,7 @@ package com.zmm.common.utils.redis.key;
 public enum OrderKey implements RedisKey{
 
     /** 订单防重令牌*/
-    USER_ORDER_TOKEN("order:token")
+    USER_ORDER_TOKEN("order:token:")
     ;
 
 

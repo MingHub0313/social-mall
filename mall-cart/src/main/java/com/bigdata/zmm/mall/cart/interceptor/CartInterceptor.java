@@ -19,7 +19,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.util.UUID;
 
 /**
@@ -51,9 +50,8 @@ public class CartInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         UserInfoTo userInfoTo = new UserInfoTo();
-        HttpSession httpSession = request.getSession();
         String token = request.getHeader(AuthConstant.HEADER_TOKEN_KEY);
-        log.error("token:[{}]",token);
+        log.error("Cart token:[{}]",token);
         if (StringUtil.isNotBlank(token)) {
             Object key = redisUtil.get(CommonKey.AUTH_TOKEN_USER_PREFIX.setSuffix(token));
             Object object = redisUtil.hash(CommonKey.AUTH_USER_KEY, key.toString());

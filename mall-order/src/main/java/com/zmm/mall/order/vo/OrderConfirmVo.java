@@ -82,14 +82,8 @@ public class OrderConfirmVo {
      * @return: java.math.BigDecimal
      **/
     public BigDecimal getTotal() {
-        BigDecimal sum = new BigDecimal("0");
-        if (!CollectionUtils.isEmpty(orderItemVoList)) {
-            for (OrderItemVo orderItemVo:orderItemVoList) {
-                BigDecimal multiply = orderItemVo.getPrice().multiply(new BigDecimal(orderItemVo.getCount().toString()));
-                sum = sum.add(multiply);
-            }
-        }
-        return sum;
+        BigDecimal totalSum = getBigDecimal();
+        return totalSum;
     }
 
     /**
@@ -100,9 +94,14 @@ public class OrderConfirmVo {
      * @return: java.math.BigDecimal
      **/
     public BigDecimal getPayPrice() {
+        BigDecimal paySum = getBigDecimal();
+        return paySum;
+    }
+
+    private BigDecimal getBigDecimal() {
         BigDecimal paySum = BigDecimal.ZERO;
         if (!CollectionUtils.isEmpty(orderItemVoList)) {
-            for (OrderItemVo orderItemVo:orderItemVoList) {
+            for (OrderItemVo orderItemVo : orderItemVoList) {
                 BigDecimal multiply = orderItemVo.getPrice().multiply(new BigDecimal(orderItemVo.getCount().toString()));
                 paySum = paySum.add(multiply);
             }

@@ -25,6 +25,6 @@ public interface MemberFeignService {
      * @param memberId: 
      * @return: java.util.List<com.zmm.mall.order.vo.MemberAddressVo>
      **/
-    @GetMapping("/member/{memberId}/address")
+    @GetMapping(value = "/member/memberreceiveaddress/{memberId}/address")
     List<MemberAddressVo> getAddress(@PathVariable("memberId") Long memberId);
 }

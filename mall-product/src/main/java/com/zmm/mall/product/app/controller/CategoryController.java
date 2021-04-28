@@ -1,20 +1,16 @@
 package com.zmm.mall.product.app.controller;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
+import com.zmm.common.utils.R;
+import com.zmm.mall.product.entity.CategoryEntity;
+import com.zmm.mall.product.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.zmm.mall.product.entity.CategoryEntity;
-import com.zmm.mall.product.service.CategoryService;
-import com.zmm.common.utils.PageUtils;
-import com.zmm.common.utils.R;
+import java.util.Arrays;
+import java.util.List;
 
 
 
@@ -35,10 +31,10 @@ public class CategoryController {
      * 查出所有的分类以及子分类,以树形结构组装起来
      */
     @RequestMapping("/list/tree")
-    public R list(){
+    public List<CategoryEntity> list(){
         List<CategoryEntity> entities = categoryService.listWithTree();
 
-        return R.ok().put("data", entities);
+        return entities;
     }
 
 

@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.zmm.common.to.mq.SeckillOrderTo;
 import com.zmm.common.utils.PageUtils;
 import com.zmm.mall.order.entity.OrderEntity;
+import com.zmm.mall.order.vo.CategoryEntity;
 import com.zmm.mall.order.vo.OrderConfirmVo;
 import com.zmm.mall.order.vo.OrderSubmitVo;
 import com.zmm.mall.order.vo.PayAsyncVo;
 import com.zmm.mall.order.vo.PayVo;
 import com.zmm.mall.order.vo.SubmitOrderResponseVo;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -29,9 +31,22 @@ public interface OrderService extends IService<OrderEntity> {
      * @description:
      * @author: Administrator
      * @date: 2021-03-08 22:10:54
+	 * @throws ExecutionException
+	 * @throws InterruptedException
      * @return: com.zmm.mall.order.vo.OrderConfirmVo
      **/
     OrderConfirmVo confirmOrder() throws ExecutionException, InterruptedException;
+
+    /**
+     * 测试 异步 的feign
+     * @author: 900045
+     * @date: 2021-04-28 14:00:50
+     * @throws ExecutionException
+	 * @throws InterruptedException
+    
+     * @return: java.util.List<com.zmm.mall.order.vo.CategoryEntity>
+     **/
+	List<CategoryEntity> testList() throws ExecutionException, InterruptedException;
 
     /**
      * 下单操作

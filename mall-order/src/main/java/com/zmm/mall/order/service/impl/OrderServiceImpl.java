@@ -29,12 +29,21 @@ import com.zmm.mall.order.service.OrderItemService;
 import com.zmm.mall.order.service.OrderService;
 import com.zmm.mall.order.service.PaymentInfoService;
 import com.zmm.mall.order.to.OrderCreatTo;
-import com.zmm.mall.order.vo.*;
+import com.zmm.mall.order.vo.CategoryEntity;
+import com.zmm.mall.order.vo.FareVo;
+import com.zmm.mall.order.vo.MemberAddressVo;
+import com.zmm.mall.order.vo.OrderConfirmVo;
+import com.zmm.mall.order.vo.OrderItemVo;
+import com.zmm.mall.order.vo.OrderSubmitVo;
+import com.zmm.mall.order.vo.PayAsyncVo;
+import com.zmm.mall.order.vo.PayVo;
+import com.zmm.mall.order.vo.SkuStockVo;
+import com.zmm.mall.order.vo.SpuInfoVo;
+import com.zmm.mall.order.vo.SubmitOrderResponseVo;
+import com.zmm.mall.order.vo.WareSkuLockVo;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -42,10 +51,13 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.annotation.Resource;
-import javax.xml.crypto.Data;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -96,33 +108,75 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return new PageUtils(page);
     }
 
-    @Override
+	@Override
+	public List<CategoryEntity> testList() throws ExecutionException, InterruptedException {
+		List<CategoryEntity> list = new ArrayList<>();
+		CompletableFuture<Void> futureAddressVoList = CompletableFuture.runAsync(() -> {
+			List<CategoryEntity> entityList = productFeignService.list();
+			list.addAll(entityList);
+		}, executor);
+		CompletableFuture.allOf(futureAddressVoList).get();
+		return list;
+	}
+
+    /**
+     * 远程调用 ---- >cartFeignService.getCartItemByUser()
+     * 在 order 模板 已经登录 但是在 Cart 模板 判断是没有登录的  ---- BUG 丢失请求头
+     * 
+     * debug调式:
+     * step into -- > public Object invoke(Object proxy, Method method, Object[] args)
+     * step into -- > public Object invoke(Object[] argv)
+     * step into -- > Object executeAndDecode(RequestTemplate template)  ---> 执行
+     * step into -- > Request targetRequest(RequestTemplate template)  ---> 构造 所以在发请求之前会调用一些拦截器
+     * feign 在远程调用之前要构造请求,调用很多的拦截器 (会创建(新的request)一个默认的 RequestTemplate 没有任何请求头) --> 相当于请求头丢失
+     * 有拦截器 进行增加  -->   加上 feign 远程调用的请求拦截器
+     * 
+     * 新创建的 request 的流程是: feign 创建好请求 --> 先调用我们自己的拦截器(有多少调多少) apply() 方法 --> 然后发送请求(此时携带了请求头)
+     * Iterator var2 = this.requestInterceptors.iterator()
+     * while(var2.hasNext())
+     *      RequestInterceptor interceptor = (RequestInterceptor)var2.next()
+     *      interceptor.apply(template)
+     * return this.target.apply(template);
+     *  
+     *  
+     *  使用异步 feign 会丢失上下文
+     *  
+     *  
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+	@Override
     public OrderConfirmVo confirmOrder() throws ExecutionException, InterruptedException {
         OrderConfirmVo orderConfirmVo = new OrderConfirmVo();
         MemberRespVo memberRespVo = LoginUserInterceptor.loginUser.get();
         // 让所有的线程都共享 这个 requestAttributes RequestContextHolder 中的线程的数据都不一样
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        // 使用异步 feign 会丢失上下文
+        RequestAttributes servletRequestAttributes = RequestContextHolder.getRequestAttributes();
+        
+        
         CompletableFuture<Void> futureAddressVoList = CompletableFuture.runAsync(() -> {
             // 1.远程查询所有的收货地址列表
             // 每一个线程都来共享之前的请求数据
-            RequestContextHolder.setRequestAttributes(requestAttributes);
+            RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+            System.out.println("CART member 线程...."+Thread.currentThread().getId());
             List<MemberAddressVo> memberAddressVoList = memberFeignService.getAddress(memberRespVo.getId());
             orderConfirmVo.setMemberAddressVoList(memberAddressVoList);
         }, executor);
 
-
+        
+        
         CompletableFuture<Void> futureItemVoList = CompletableFuture.runAsync(() -> {
             // 2.远程查询购物车所有选中的购物项
-            RequestContextHolder.setRequestAttributes(requestAttributes);
+            RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+            System.out.println("CART cart 线程...."+Thread.currentThread().getId());
             List<OrderItemVo> orderItemVoList = cartFeignService.getCartItemByUser();
             // feign 远程调用会丢失请求头的 ===> 解决方案:加上 feign 远程调用的请求拦截器
             // feign 在远程调用之前要构造请求,调用很多的拦截器 RequestInterceptor interceptor : requestInterceptors
             orderConfirmVo.setOrderItemVoList(orderItemVoList);
         }, executor).thenRunAsync(()->{
             // 上一步执行完之后 去库存服务查询 库存信息
-            List<OrderItemVo> orderItemVoList = orderConfirmVo.getOrderItemVoList();
-            List<Long> skuIdList = orderItemVoList.stream().map(item -> item.getSkuId()).collect(Collectors.toList());
+            List<OrderItemVo> newOrderItemVoList = orderConfirmVo.getOrderItemVoList();
+            List<Long> skuIdList = newOrderItemVoList.stream().map(item -> item.getSkuId()).collect(Collectors.toList());
             R result = wareFeignService.getSkuHasStock(skuIdList);
             // 获取每一个 skuId 的库存信息
             List<SkuStockVo> stockVoList = result.getData(new TypeReference<List<SkuStockVo>>() {
@@ -148,6 +202,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderConfirmVo.setOrderToken(token);
         return orderConfirmVo;
     }
+    
+    
 
     /**
      * 下单 高并发场景 @GlobalTransaction 高并发中 不考虑使用 AT/TCC
@@ -159,7 +215,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * @return: com.zmm.mall.order.vo.SubmitOrderResponseVo
      **/
 
-    @Transactional(rollbackFor = Exception.class,propagation = Propagation.MANDATORY)
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
         submitVoThreadLocal.set(orderSubmitVo);
@@ -235,8 +291,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // 锁定失败 ---> 为了保证高并发 库存系统自己会难回滚 1.可以发消息给库存服务 / 2.库存服务本身也可以使用自动解锁模式 (消息队列)
             // TODO 如何库存出现异常 1.远程的库存服务会自动回滚 2.然后保存订单也会回滚 (异常机制-- 感知异常进行回滚)
             String msg = (String)r.get("msg");
+            response.setCode(3);
             throw new NoStockException(3L);
-            //response.setCode(3)
+            
         }
         return response;
     }
@@ -516,13 +573,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 设置与运费信息
         orderEntity.setFreightAmount(fareVo.getFare());
         // 设置收货人信息
-        orderEntity.setReceiverCity(fareVo.getAddress().getCity());
-        orderEntity.setReceiverDetailAddress(fareVo.getAddress().getDetailAddress());
-        orderEntity.setReceiverName(fareVo.getAddress().getName());
-        orderEntity.setReceiverPhone(fareVo.getAddress().getPhone());
-        orderEntity.setReceiverPostCode(fareVo.getAddress().getPostCode());
-        orderEntity.setReceiverProvince(fareVo.getAddress().getProvince());
-        orderEntity.setReceiverRegion(fareVo.getAddress().getRegion());
+        orderEntity.setReceiverCity(fareVo.getMemberAddressVo().getCity());
+        orderEntity.setReceiverDetailAddress(fareVo.getMemberAddressVo().getDetailAddress());
+        orderEntity.setReceiverName(fareVo.getMemberAddressVo().getName());
+        orderEntity.setReceiverPhone(fareVo.getMemberAddressVo().getPhone());
+        orderEntity.setReceiverPostCode(fareVo.getMemberAddressVo().getPostCode());
+        orderEntity.setReceiverProvince(fareVo.getMemberAddressVo().getProvince());
+        orderEntity.setReceiverRegion(fareVo.getMemberAddressVo().getRegion());
 
         // 设置订单的相关状态
         orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());

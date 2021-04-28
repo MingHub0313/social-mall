@@ -23,6 +23,6 @@ public interface CartFeignService {
      * @date: 2021-03-08 22:43:57
      * @return: java.util.List<com.zmm.mall.order.vo.OrderItemVo>
      **/
-    @GetMapping("/find/cartItems/user'")
+    @GetMapping("/cart/find/cartItems/user")
     List<OrderItemVo> getCartItemByUser();
 }

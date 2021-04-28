@@ -2,13 +2,10 @@ package com.bigdata.zmm.mall.cart;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import com.bigdata.zmm.mall.cart.feign.ProductFeignService;
 import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
-import com.bigdata.zmm.mall.cart.vo.SkuInfoVo;
 import com.google.gson.Gson;
-import com.zmm.common.utils.R;
 import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CartKey;
@@ -20,7 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -46,10 +42,18 @@ public class MallCatApplicationTests {
     public void hashValueField(){
         Cart cart = new Cart();
         CartKey cartKey = CartKey.MALL_CART;
-        Object hash = redisUtil.hash(cartKey.setSuffix(3L), 3);
+        Object hash = redisUtil.hash(cartKey.setSuffix(1L), 4);
         CartItem cartItem = JSONObject.parseObject(JSON.toJSONString(hash), CartItem.class);
         log.info(cartItem.toString());
 
+    }
+
+    @Test
+    public void hashGet(){
+        CartKey cartKey = CartKey.MALL_CART;
+        Object s = redisUtil.hashGet(cartKey.setSuffix(1L), 4);
+        CartItem cartItem = JSONObject.parseObject(JSON.toJSONString(s), CartItem.class);
+        log.info(cartItem.toString());
     }
 
     @Test
@@ -68,11 +72,11 @@ public class MallCatApplicationTests {
     public void addCartRedis() throws ExecutionException, InterruptedException {
         CartKey cartKey = CartKey.MALL_CART;
 
-        Long skuId = 14L;
+        Long skuId = 4L;
 
         Integer number = 1;
 
-        Long userId = 3L;
+        Long userId = 1L;
 
         String string = redisUtil.hashGet(cartKey.setSuffix(userId), skuId.toString());
 

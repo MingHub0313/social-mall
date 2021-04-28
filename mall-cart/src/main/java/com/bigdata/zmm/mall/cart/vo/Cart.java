@@ -3,6 +3,7 @@ package com.bigdata.zmm.mall.cart.vo;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -13,8 +14,11 @@ import java.util.List;
  * @Date By 2021-02-28 22:13:24
  */
 @Data
-public class Cart {
+public class Cart implements Serializable {
 
+
+    private static final long serialVersionUID = -7705535426453621653L;
+    
     List<CartItem> cartItems;
 
     /**

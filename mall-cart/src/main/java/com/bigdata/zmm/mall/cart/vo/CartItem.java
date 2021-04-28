@@ -2,6 +2,7 @@ package com.bigdata.zmm.mall.cart.vo;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -12,8 +13,10 @@ import java.util.List;
  * @Date By 2021-02-28 22:13:39
  */
 @Data
-public class CartItem{
+public class CartItem implements Serializable {
 
+
+    private static final long serialVersionUID = 3204515898220139001L;
     /**
      * skuId
      */

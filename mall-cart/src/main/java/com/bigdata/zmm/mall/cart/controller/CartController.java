@@ -120,6 +120,15 @@ public class CartController {
     }
 
 
+    /**
+     * 改变商品的数量
+     * @author: 900045
+     * @date: 2021-04-28 09:53:55
+     * @throws 
+     * @param skuId: 
+     * @param number: 
+     * @return: com.zmm.common.base.model.ReqResult
+     **/
     @GetMapping("/countItem")
     public ReqResult countItem(@RequestParam("skuId")Long skuId,@RequestParam("number") Integer number){
         cartService.changeItemCount(skuId,number);
@@ -127,6 +136,14 @@ public class CartController {
         return new ReqResult(ResultCode.SUCCESS);
     }
 
+    /**
+     * 删除购物车中的商品
+     * @author: 900045
+     * @date: 2021-04-28 09:53:43
+     * @throws 
+     * @param skuId: 
+     * @return: com.zmm.common.base.model.ReqResult
+     **/
     @GetMapping("/deleteItem")
     public ReqResult deleteCartItem(@RequestParam("skuId")Long skuId){
         cartService.deleteCartItem(skuId);

@@ -11,7 +11,6 @@ import com.bigdata.zmm.mall.cart.vo.Cart;
 import com.bigdata.zmm.mall.cart.vo.CartItem;
 import com.bigdata.zmm.mall.cart.vo.SkuInfoVo;
 import com.zmm.common.utils.R;
-import com.zmm.common.utils.StringUtil;
 import com.zmm.common.utils.redis.RedisUtil;
 import com.zmm.common.utils.redis.key.CartKey;
 import com.zmm.common.utils.redis.key.RedisKey;
@@ -59,15 +58,16 @@ public class CartServiceImpl implements CartService {
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
 
         // advance.1 判断购物车中是否存在
-        String string = redisUtil.hashGet(getCartKey(userInfoTo), skuId.toString());
+        Object string = redisUtil.hash(getCartKey(userInfoTo), skuId.toString());
         /**
          * 1.判断购物车中是否存在
          *      存在: 则修改数量
          *      不存在:则添加购物项
          */
-        if (StringUtil.isNotBlank(string)){
+        if (!ObjectUtils.isEmpty(string)){
+            log.info("string:[{}]",string);
             // 购物车 有此商品 修改商品数量
-            CartItem cartItem = JSON.parseObject(string, CartItem.class);
+            CartItem cartItem = JSONObject.parseObject(JSON.toJSONString(string), CartItem.class);
             cartItem.setCount(cartItem.getCount() + number);
             // redisKey  field value
             redisUtil.hash(getCartKey(userInfoTo), skuId,cartItem);
@@ -201,7 +201,6 @@ public class CartServiceImpl implements CartService {
         CartKey cartKey = getCartKey(userInfoTo);
         CartItem cartItem = getCartItem(cartKey,skuId);
         cartItem.setCheck(check == 1 ? true : false);
-        //String jsonString = JSON.toJSONString(cartItem);
         redisUtil.hash(cartKey,skuId,cartItem);
     }
 
@@ -223,8 +222,10 @@ public class CartServiceImpl implements CartService {
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
         CartKey cartKey = getCartKey(userInfoTo);
         CartItem cartItem = getCartItem(cartKey,skuId);
-        cartItem.setCount(number);
-        redisUtil.hash(cartKey,skuId,cartItem);
+        if (!ObjectUtils.isEmpty(cartItem)) {
+            cartItem.setCount(number);
+            redisUtil.hash(cartKey, skuId, cartItem);
+        }
     }
 
     @Override
@@ -240,9 +241,7 @@ public class CartServiceImpl implements CartService {
         if (userInfoTo.getUserId() == null){
             return null;
         } else {
-            CartKey cartKey = CartKey.MALL_CART;
-            RedisKey tempCartKey = cartKey.setSuffix(userInfoTo.getUserKey());
-            List cartItemList = redisUtil.hashValues(cartKey);
+            List cartItemList = redisUtil.hashValues(getCartKey(userInfoTo));
             List<CartItem> allCrtItems = JSON.parseArray(JSON.toJSONString(cartItemList), CartItem.class);
             // 获取所有被选中的购物项
             List<CartItem> itemList = allCrtItems.stream().filter(item ->

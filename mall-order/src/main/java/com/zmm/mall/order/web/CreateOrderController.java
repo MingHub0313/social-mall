@@ -1,5 +1,6 @@
 package com.zmm.mall.order.web;
 
+import com.zmm.common.utils.MessageDigestUtil;
 import com.zmm.mall.order.entity.OrderEntity;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -32,5 +35,10 @@ public class CreateOrderController {
         // 2.给MQ 发送消息 下单成功 配置文件中的手动确认 spring.rabbitmq.publisher-confirms=true
         rabbitTemplate.convertAndSend("order-event-exchange","order.create.order",orderEntity);
         return "ok";
+    }
+    
+    @GetMapping("/verity/code")
+    public void verifyCode(String username, HttpServletResponse response) throws IOException {
+        MessageDigestUtil.verifyCode(username,response);
     }
 }
