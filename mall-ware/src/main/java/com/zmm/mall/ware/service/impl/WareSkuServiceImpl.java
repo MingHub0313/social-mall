@@ -4,7 +4,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.rabbitmq.client.Channel;
 import com.zmm.common.base.model.ResultCode;
 import com.zmm.common.enums.OrderStatusEnum;
 import com.zmm.common.exception.CustomRunTimeException;
@@ -24,14 +23,14 @@ import com.zmm.mall.ware.feign.ProductFeignService;
 import com.zmm.mall.ware.service.WareOrderTaskDetailService;
 import com.zmm.mall.ware.service.WareOrderTaskService;
 import com.zmm.mall.ware.service.WareSkuService;
-import com.zmm.mall.ware.vo.*;
+import com.zmm.mall.ware.vo.OrderItemVo;
+import com.zmm.mall.ware.vo.OrderVo;
+import com.zmm.mall.ware.vo.SkuHasStockVo;
+import com.zmm.mall.ware.vo.SkuWareHasStock;
+import com.zmm.mall.ware.vo.WareSkuLockVo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitHandler;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -39,7 +38,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -223,7 +222,9 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
          * 追溯
          */
         WareOrderTaskEntity wareOrderTaskEntity = new WareOrderTaskEntity();
+        wareOrderTaskEntity.setOrderId(vo.getId());
         wareOrderTaskEntity.setOrderSn(vo.getOrderSn());
+        wareOrderTaskEntity.setCreateTime(new Date());
         wareOrderTaskService.save(wareOrderTaskEntity);
         // 1.按照下单的收货地址, 找到一个就近仓库, 锁定库存
         // 1.1找到每个商品在哪个库存有

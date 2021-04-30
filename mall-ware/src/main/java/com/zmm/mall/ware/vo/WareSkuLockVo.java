@@ -18,6 +18,9 @@ public class WareSkuLockVo {
      * 订单号
      */
     private String orderSn;
+    
+    
+    private Long id;
 
     /**
      * 需要锁住的所有库存信息

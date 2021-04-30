@@ -269,6 +269,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             itemVo.setTitle(item.getSkuName());
             return itemVo;
         }).collect(Collectors.toList());
+        skuLockVo.setId(orderCreatTo.getOrderEntity().getId());
         skuLockVo.setLocks(orderItemVos);
         /**
          * Transactional --> 在分布式系统,只能控制住自己的回滚 控制不了其他服务的回滚
@@ -396,9 +397,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private void saveOrder(OrderCreatTo orderCreatTo) {
         OrderEntity orderEntity = orderCreatTo.getOrderEntity();
         // 设置值
-        orderEntity.setModifyTime(new Date());
+        orderEntity.setCreateTime(new Date());
         this.save(orderEntity);
         List<OrderItemEntity> orderItemEntities = orderCreatTo.getOrderItemEntities();
+        orderItemEntities.forEach(orderItemEntity -> orderItemEntity.setOrderId(orderEntity.getId()));
         // 批量插入数据库
         orderItemService.saveBatch(orderItemEntities);
     }
